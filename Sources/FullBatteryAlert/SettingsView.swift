@@ -86,10 +86,20 @@ struct SettingsView: View {
             Toggle("Show percentage inside the icon", isOn: $settings.showPercentageInIcon)
                 .font(.callout)
 
-            Text("Tip: ⌘-drag this icon to reposition. To hide the system battery indicator, use System Settings → Control Center → Battery (macOS no longer allows apps to toggle it).")
+            Divider()
+
+            Text("System Battery Indicator").font(.subheadline.weight(.semibold))
+            Button("Hide system battery indicator") {
+                SystemBatteryIndicator.hide()
+            }
+            Text("Tries to toggle Control Center automatically, then opens System Settings → Control Center so you can flip “Battery → Don’t Show in Menu Bar” if it didn’t take.")
                 .font(.caption)
                 .foregroundStyle(.tertiary)
                 .fixedSize(horizontal: false, vertical: true)
+
+            Text("Tip: ⌘-drag this icon to reposition.")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
 
             Divider()
 
