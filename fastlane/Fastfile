@@ -50,6 +50,26 @@ platform :mac do
     end
   end
 
+  desc "Try promoting beta group to internal"
+  lane :promote_internal do
+    require 'spaceship'
+    token = Spaceship::ConnectAPI::Token.create(
+      key_id: "XG3FW9LT9Q",
+      issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d",
+      filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8")
+    )
+    Spaceship::ConnectAPI.token = token
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.fullbatteryalert")
+    group = app.get_beta_groups.find { |g| g.name == "Internal Testers" }
+    UI.message("Group #{group.id} currently internal=#{group.is_internal_group}")
+    begin
+      Spaceship::ConnectAPI.patch_group(group_id: group.id, attributes: { isInternalGroup: true, hasAccessToAllBuilds: true })
+      UI.success("Patched to internal")
+    rescue => e
+      UI.error("Patch failed: #{e.message}")
+    end
+  end
+
   desc "Delete duplicate beta groups (keep one)"
   lane :cleanup_groups do
     require 'spaceship'
