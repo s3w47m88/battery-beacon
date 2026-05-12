@@ -31,6 +31,7 @@ targets:
         NSHumanReadableCopyright: "MIT License"
         LSApplicationCategoryType: public.app-category.utilities
         CFBundleIconFile: AppIcon
+        ITSAppUsesNonExemptEncryption: false
     entitlements:
       path: Sources/FullBatteryAlert/FullBatteryAlert.entitlements
       properties:

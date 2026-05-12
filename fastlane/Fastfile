@@ -50,6 +50,100 @@ platform :mac do
     end
   end
 
+  desc "Delete duplicate beta groups (keep one)"
+  lane :cleanup_groups do
+    require 'spaceship'
+    token = Spaceship::ConnectAPI::Token.create(
+      key_id: "XG3FW9LT9Q",
+      issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d",
+      filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8")
+    )
+    Spaceship::ConnectAPI.token = token
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.fullbatteryalert")
+    groups = app.get_beta_groups.select { |g| g.name == "Internal Testers" }
+    keeper = groups.last  # the one with build + tester
+    groups[0...-1].each do |g|
+      UI.message("Deleting duplicate group #{g.id}")
+      g.delete! rescue UI.message("delete failed: #{$!.message}")
+    end
+    UI.success("Kept group: #{keeper.id}")
+  end
+
+  desc "Add internal testers + assign latest build"
+  lane :testers do
+    require 'spaceship'
+    token = Spaceship::ConnectAPI::Token.create(
+      key_id: "XG3FW9LT9Q",
+      issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d",
+      filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8")
+    )
+    Spaceship::ConnectAPI.token = token
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.fullbatteryalert")
+
+    groups = app.get_beta_groups
+    UI.message("All groups: #{groups.map { |g| "#{g.name}(internal=#{g.is_internal_group})" }.join(', ')}")
+    group = groups.find { |g| g.is_internal_group }
+    unless group
+      UI.message("Creating internal beta group")
+      group = app.create_beta_group(group_name: "Internal Testers", is_internal_group: true) rescue app.create_beta_group(group_name: "Internal Testers")
+    end
+    UI.success("Group: #{group.name} (#{group.id})")
+
+    build = Spaceship::ConnectAPI::Build.all(app_id: app.id, sort: "-uploadedDate", limit: 1).first
+    UI.message("Latest build: #{build.version} state=#{build.processing_state}")
+
+    # Set export compliance (no encryption)
+    begin
+      Spaceship::ConnectAPI.patch_builds(build_id: build.id, attributes: { usesNonExemptEncryption: false })
+      UI.success("Export compliance set")
+    rescue => e
+      UI.message("Compliance: #{e.message}")
+    end
+
+    # Assign build to group
+    begin
+      build.add_beta_groups(beta_groups: [group])
+      UI.success("Build assigned to group")
+    rescue => e
+      UI.message("Group assignment: #{e.message}")
+    end
+
+    # Create + add tester
+    email = "spencerdhill@protonmail.com"
+    begin
+      tester = Spaceship::ConnectAPI.post_beta_tester_assignment(
+        beta_group_ids: [group.id],
+        attributes: { email: email, firstName: "Spencer", lastName: "Hill" }
+      )
+      UI.success("Tester added: #{email}")
+    rescue => e
+      UI.message("Tester add via assignment: #{e.message}")
+      # Try alternative: post tester then link to group
+      begin
+        client = Spaceship::ConnectAPI::TestFlight::Client.instance
+        body = { data: { type: "betaTesters", attributes: { email: email, firstName: "Spencer", lastName: "Hill" }, relationships: { betaGroups: { data: [{ type: "betaGroups", id: group.id }] } } } }
+        client.post("betaTesters", body)
+        UI.success("Tester added via direct POST")
+      rescue => e2
+        UI.error("All tester methods failed: #{e2.message}")
+      end
+    end
+  end
+
+  desc "Check TestFlight build status"
+  lane :check do
+    require 'spaceship'
+    token = Spaceship::ConnectAPI::Token.create(
+      key_id: "XG3FW9LT9Q",
+      issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d",
+      filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8")
+    )
+    Spaceship::ConnectAPI.token = token
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.fullbatteryalert")
+    builds = Spaceship::ConnectAPI::Build.all(app_id: app.id, sort: "-uploadedDate", limit: 5)
+    builds.each { |b| UI.message("build #{b.version}: processing=#{b.processing_state} uploaded=#{b.uploaded_date}") }
+  end
+
   desc "Create Mac Installer Distribution cert (needed for .pkg signing on macOS app-store export)"
   lane :installer_cert do
     require 'spaceship'
