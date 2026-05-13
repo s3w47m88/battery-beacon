@@ -27,7 +27,7 @@ platform :mac do
     else
       UI.message("Registering bundle ID #{bundle_id}")
       Spaceship::ConnectAPI::BundleId.create(
-        name: "MacOS Fully Battery Alert",
+        name: "Battery Charged Notification",
         platform: Spaceship::ConnectAPI::BundleIdPlatform::MAC_OS,
         identifier: bundle_id
       )
@@ -39,7 +39,7 @@ platform :mac do
     else
       UI.message("Creating ASC app record")
       app = Spaceship::ConnectAPI::App.create(
-        name: "MacOS Fully Battery Alert",
+        name: "Battery Charged Notification",
         version_string: "0.1.0",
         sku: "fullbatteryalert001",
         primary_locale: "en-US",
@@ -92,9 +92,9 @@ platform :mac do
     en_loc = info_locs.find { |l| l.locale == "en-US" }
     if en_loc
       Spaceship::ConnectAPI.patch_app_info_localization(app_info_localization_id: en_loc.id, attributes: {
-        name: "MacOS Fully Battery Alert",
+        name: "Battery Charged Notification",
         subtitle: "Battery-percentage alerts",
-        privacyPolicyUrl: "https://github.com/s3w47m88/MacOS-Battery-Charged-Alerts"
+        privacyPolicyUrl: "https://github.com/s3w47m88/battery-charged-notification"
       }) rescue UI.message("info loc: #{$!.message[0..120]}")
       UI.success("App info localization updated")
     end
@@ -107,10 +107,10 @@ platform :mac do
     locs = Spaceship::ConnectAPI.get_app_store_version_localizations(app_store_version_id: version.id).to_models
     en_v = locs.find { |l| l.locale == "en-US" }
     Spaceship::ConnectAPI.patch_app_store_version_localization(app_store_version_localization_id: en_v.id, attributes: {
-      description: "MacOS Fully Battery Alert is a tiny menu bar utility that notifies you the moment your Mac's battery reaches the percentage you choose — so you can unplug at 95%, 100%, or any threshold you set, and never overcharge.\n\nFeatures:\n• Lives in the menu bar; shows current battery % and a charging bolt.\n• Configurable alert thresholds with sliders (default 95% and 100%).\n• Native macOS notifications fire near the battery icon at each threshold while plugged in.\n• Optional alert sound.\n• Thresholds reset automatically when you unplug — one alert per threshold per charge cycle.\n• Built with SwiftUI; respects your system theme, including Liquid Glass on macOS 26.",
+      description: "Battery Charged Notification is a tiny menu bar utility that notifies you the moment your Mac's battery reaches the percentage you choose — so you can unplug at 95%, 100%, or any threshold you set, and never overcharge.\n\nFeatures:\n• Lives in the menu bar; shows current battery % and a charging bolt.\n• Configurable alert thresholds with sliders (default 95% and 100%).\n• Native macOS notifications fire near the battery icon at each threshold while plugged in.\n• Optional alert sound.\n• Thresholds reset automatically when you unplug — one alert per threshold per charge cycle.\n• Built with SwiftUI; respects your system theme, including Liquid Glass on macOS 26.",
       keywords: "battery,alert,charge,menu bar,notification,utility,laptop,macbook",
-      supportUrl: "https://github.com/s3w47m88/MacOS-Battery-Charged-Alerts",
-      marketingUrl: "https://github.com/s3w47m88/MacOS-Battery-Charged-Alerts",
+      supportUrl: "https://github.com/s3w47m88/battery-charged-notification",
+      marketingUrl: "https://github.com/s3w47m88/battery-charged-notification",
       promotionalText: "Never overcharge your Mac again."
     }) rescue UI.message("version loc: #{$!.message[0..200]}")
     UI.success("Version localization updated")
@@ -420,6 +420,49 @@ platform :mac do
     end
   end
 
+  desc "Fetch Beta App Review feedback / rejection notes"
+  lane :beta_review_status do
+    require 'spaceship'
+    token = Spaceship::ConnectAPI::Token.create(
+      key_id: "XG3FW9LT9Q",
+      issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d",
+      filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8")
+    )
+    Spaceship::ConnectAPI.token = token
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.fullbatteryalert")
+    build = Spaceship::ConnectAPI::Build.all(app_id: app.id, sort: "-uploadedDate", limit: 1).first
+    UI.message("Build #{build.version}: processing=#{build.processing_state}")
+    # Beta App Review Submissions
+    resp = Spaceship::ConnectAPI.tunes_request_client.get("v1/builds/#{build.id}/betaAppReviewSubmission")
+    UI.message("beta app review submission: #{resp.body.inspect}")
+    # Try messages / notes via direct API
+    begin
+      msgs = Spaceship::ConnectAPI.tunes_request_client.get("v1/apps/#{app.id}/appStoreReviewSubmissions")
+      UI.message("messages: #{msgs.body.inspect[0..2000]}")
+    rescue => e
+      UI.message("msgs err: #{e.message[0..200]}")
+    end
+  end
+
+  desc "Check App Store review submission status"
+  lane :review_status do
+    require 'spaceship'
+    token = Spaceship::ConnectAPI::Token.create(
+      key_id: "XG3FW9LT9Q",
+      issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d",
+      filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8")
+    )
+    Spaceship::ConnectAPI.token = token
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.fullbatteryalert")
+    subs = Spaceship::ConnectAPI.get_review_submissions(app_id: app.id).to_models
+    subs.each { |s| UI.message("review submission #{s.id}: state=#{s.state} submitted=#{s.submitted_date}") }
+    version = app.get_edit_app_store_version(platform: "MAC_OS") || app.get_latest_app_store_version(platform: "MAC_OS")
+    UI.message("version 1.0 state=#{version&.app_store_state}") if version
+    # Beta review for the build
+    build = Spaceship::ConnectAPI::Build.all(app_id: app.id, sort: "-uploadedDate", limit: 1).first
+    UI.message("build #{build.version}: processing=#{build.processing_state}")
+  end
+
   desc "Check TestFlight build status"
   lane :check do
     require 'spaceship'
@@ -432,6 +475,60 @@ platform :mac do
     app = Spaceship::ConnectAPI::App.find("com.spencerhill.fullbatteryalert")
     builds = Spaceship::ConnectAPI::Build.all(app_id: app.id, sort: "-uploadedDate", limit: 5)
     builds.each { |b| UI.message("build #{b.version}: processing=#{b.processing_state} uploaded=#{b.uploaded_date}") }
+  end
+
+  desc "Cancel any in-flight App Store review submission"
+  lane :cancel_review do
+    require 'spaceship'
+    token = Spaceship::ConnectAPI::Token.create(
+      key_id: "XG3FW9LT9Q",
+      issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d",
+      filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8")
+    )
+    Spaceship::ConnectAPI.token = token
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.fullbatteryalert")
+    subs = Spaceship::ConnectAPI.get_review_submissions(app_id: app.id).to_models
+    subs.each do |s|
+      next unless ["READY_FOR_REVIEW","WAITING_FOR_REVIEW","IN_REVIEW"].include?(s.state)
+      UI.message("Canceling submission #{s.id} (#{s.state})")
+      Spaceship::ConnectAPI.patch_review_submission(review_submission_id: s.id, attributes: { canceled: true }) rescue UI.message($!.message[0..200])
+    end
+    # Also rename app record so the app's display name in ASC is updated
+    begin
+      Spaceship::ConnectAPI.patch_app(app_id: app.id, attributes: { name: "Battery Charged Notification" })
+      UI.success("App display name updated")
+    rescue => e
+      UI.message("app name: #{e.message[0..200]}")
+    end
+  end
+
+  desc "Submit latest build for Beta App Review (build 2+)"
+  lane :submit_beta_v2 do
+    require 'spaceship'
+    token = Spaceship::ConnectAPI::Token.create(
+      key_id: "XG3FW9LT9Q",
+      issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d",
+      filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8")
+    )
+    Spaceship::ConnectAPI.token = token
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.fullbatteryalert")
+    build = Spaceship::ConnectAPI::Build.all(app_id: app.id, sort: "-uploadedDate", limit: 1).first
+    UI.message("Submitting build #{build.version} (#{build.processing_state}) for Beta review")
+    begin
+      Spaceship::ConnectAPI.post_beta_build_localizations(build_id: build.id, attributes: { locale: "en-US", whatsNew: "Renamed app to Battery Charged Notification to comply with Apple trademark guidance." })
+    rescue
+    end
+    Spaceship::ConnectAPI.post_beta_app_review_submissions(build_id: build.id)
+    UI.success("Beta review submitted for build #{build.version}")
+  end
+
+  desc "Re-upload existing pkg to TestFlight"
+  lane :reupload do
+    upload_to_testflight(
+      api_key: API_KEY.call,
+      pkg: "build/fastlane/Battery Charged Notification.pkg",
+      skip_waiting_for_build_processing: true
+    )
   end
 
   desc "Create Mac Installer Distribution cert (needed for .pkg signing on macOS app-store export)"
@@ -531,11 +628,11 @@ platform :mac do
         }
       },
       output_directory: "build/fastlane",
-      output_name: "MacOS Fully Battery Alert"
+      output_name: "Battery Charged Notification"
     )
     upload_to_testflight(
       api_key: api_key,
-      pkg: "build/fastlane/MacOS Fully Battery Alert.pkg",
+      pkg: "build/fastlane/Battery Charged Notification.pkg",
       skip_waiting_for_build_processing: true
     )
   end

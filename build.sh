@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-APP_NAME="MacOS Fully Battery Alert"
+APP_NAME="Battery Charged Notification"
 BUNDLE_ID="com.spencerhill.fullbatteryalert"
 BUILD_DIR="build"
 APP_DIR="$BUILD_DIR/$APP_NAME.app"

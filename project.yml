@@ -8,7 +8,7 @@ settings:
   base:
     DEVELOPMENT_TEAM: VP38993WK6
     MARKETING_VERSION: "0.1.0"
-    CURRENT_PROJECT_VERSION: "1"
+    CURRENT_PROJECT_VERSION: "2"
     SWIFT_VERSION: "5.9"
     CODE_SIGN_STYLE: Manual
     CODE_SIGN_IDENTITY: "Apple Distribution"
@@ -24,8 +24,8 @@ targets:
     info:
       path: Sources/FullBatteryAlert/Info.plist
       properties:
-        CFBundleDisplayName: MacOS Fully Battery Alert
-        CFBundleName: MacOS Fully Battery Alert
+        CFBundleDisplayName: Battery Charged Notification
+        CFBundleName: Battery Charged Notification
         LSUIElement: YES
         LSMinimumSystemVersion: "14.0"
         NSHumanReadableCopyright: "MIT License"
@@ -39,6 +39,6 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.spencerhill.fullbatteryalert
-        PRODUCT_NAME: "MacOS Fully Battery Alert"
+        PRODUCT_NAME: "Battery Charged Notification"
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_KEY_LSUIElement: YES
