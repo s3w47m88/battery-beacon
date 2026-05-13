@@ -25,6 +25,11 @@ struct SettingsView: View {
                 if let timeText = timeRemainingText {
                     Text(timeText).foregroundStyle(.secondary)
                 }
+                if let powerText = powerFlowText {
+                    Text(powerText)
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                }
             }
             .font(.callout)
 
@@ -197,6 +202,24 @@ struct SettingsView: View {
                 kill(pid, SIGTERM)
             }
         }
+    }
+
+    private var powerFlowText: String? {
+        guard let v = battery.voltage, let a = battery.amperage, let w = battery.wattage else {
+            return nil
+        }
+        let label: String
+        if abs(w) < 0.05 {
+            label = "Idle"
+        } else if w > 0 {
+            label = "Charging"
+        } else {
+            label = "Discharging"
+        }
+        let watts = String(format: "%.1f W", abs(w))
+        let volts = String(format: "%.2f V", v)
+        let amps = String(format: "%.2f A", abs(a))
+        return "\(label): \(watts) (\(volts) · \(amps))"
     }
 
     private func formatMinutes(_ m: Int) -> String {

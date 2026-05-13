@@ -1,4 +1,5 @@
 import Foundation
+import IOKit
 import IOKit.ps
 import Combine
 
@@ -11,6 +12,14 @@ final class BatteryMonitor: ObservableObject {
     /// Minutes to empty while on battery, or nil if unknown/charging.
     @Published private(set) var timeToEmptyMinutes: Int? = nil
     @Published private(set) var isLowPowerMode: Bool = ProcessInfo.processInfo.isLowPowerModeEnabled
+    /// Battery terminal voltage in volts.
+    @Published private(set) var voltage: Double? = nil
+    /// Current flow in amps. Positive when charging, negative when discharging.
+    @Published private(set) var amperage: Double? = nil
+    /// Power flow in watts (voltage × amperage), signed like amperage.
+    @Published private(set) var wattage: Double? = nil
+
+    private var smartBatteryRefreshTimer: Timer?
 
     private var runLoopSource: CFRunLoopSource?
     var onChange: ((Int, Bool, Bool) -> Void)?
@@ -24,12 +33,19 @@ final class BatteryMonitor: ObservableObject {
         ) { [weak self] _ in
             self?.isLowPowerMode = ProcessInfo.processInfo.isLowPowerModeEnabled
         }
+        // IOPS callbacks only fire on percentage/charging-state changes, but
+        // amperage drifts continuously. Poll AppleSmartBattery on a timer so
+        // live wattage stays fresh.
+        smartBatteryRefreshTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
+            self?.refreshSmartBattery()
+        }
     }
 
     deinit {
         if let src = runLoopSource {
             CFRunLoopRemoveSource(CFRunLoopGetCurrent(), src, .defaultMode)
         }
+        smartBatteryRefreshTimer?.invalidate()
     }
 
     private func startObserving() {
@@ -73,7 +89,47 @@ final class BatteryMonitor: ObservableObject {
             if pct != oldPct || charging != oldCharging || plugged != oldPlugged {
                 onChange?(pct, charging, plugged)
             }
+            refreshSmartBattery()
             return
         }
+    }
+
+    private func refreshSmartBattery() {
+        let service = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("AppleSmartBattery"))
+        guard service != 0 else { return }
+        defer { IOObjectRelease(service) }
+
+        let voltageMV = readNumber(service: service, key: "Voltage")
+        // Prefer InstantAmperage for live current; fall back to averaged Amperage.
+        let amperageMA = readNumber(service: service, key: "InstantAmperage")
+            ?? readNumber(service: service, key: "Amperage")
+
+        let newVoltage = voltageMV.map { Double($0) / 1000.0 }
+        let newAmperage = amperageMA.map { Double($0) / 1000.0 }
+        let newWattage: Double? = {
+            guard let v = newVoltage, let a = newAmperage else { return nil }
+            return v * a
+        }()
+
+        if voltage != newVoltage { voltage = newVoltage }
+        if amperage != newAmperage { amperage = newAmperage }
+        if wattage != newWattage { wattage = newWattage }
+    }
+
+    private func readNumber(service: io_service_t, key: String) -> Int64? {
+        guard let prop = IORegistryEntryCreateCFProperty(service, key as CFString, kCFAllocatorDefault, 0)?.takeRetainedValue() else {
+            return nil
+        }
+        guard let num = prop as? NSNumber else { return nil }
+        var value = num.int64Value
+        // Some macOS versions report Amperage as an unsigned 16- or 32-bit
+        // value that's actually a two's-complement negative when discharging.
+        // Sane mA values are well under 100,000 in magnitude, so re-interpret
+        // implausibly large positives as signed-overflow.
+        if key.contains("Amperage") {
+            if value > 0x7FFFFFFF { value -= 0x100000000 }
+            else if value > 0x7FFF && value <= 0xFFFF { value -= 0x10000 }
+        }
+        return value
     }
 }
