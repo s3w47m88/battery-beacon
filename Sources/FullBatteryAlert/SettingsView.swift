@@ -97,6 +97,9 @@ struct SettingsView: View {
             Toggle("Show percentage inside the icon", isOn: $settings.showPercentageInIcon)
                 .font(.callout)
 
+            Toggle("Open on startup", isOn: $settings.openOnStartup)
+                .font(.callout)
+
             Divider()
 
             Text("System Battery Indicator").font(.subheadline.weight(.semibold))
