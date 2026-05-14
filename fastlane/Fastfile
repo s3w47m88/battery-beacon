@@ -100,7 +100,18 @@ platform :mac do
     end
 
     # 4) App Store version — get or create
+    desired_version = ENV["RELEASE_VERSION"] || "0.1.2"
     version = app.get_edit_app_store_version(platform: "MAC_OS")
+    if version.nil?
+      UI.message("No editable version; creating #{desired_version}")
+      version = Spaceship::ConnectAPI::AppStoreVersion.create(
+        app_id: app.id,
+        attributes: { platform: "MAC_OS", versionString: desired_version, releaseType: "AFTER_APPROVAL", copyright: "2026 Spencer Hill" }
+      )
+    elsif version.version_string != desired_version
+      UI.message("Updating editable version #{version.version_string} -> #{desired_version}")
+      Spaceship::ConnectAPI.patch_app_store_version(app_store_version_id: version.id, attributes: { versionString: desired_version }) rescue UI.message("version rename: #{$!.message[0..200]}")
+    end
     UI.message("Version: #{version&.version_string} state=#{version&.app_store_state}")
 
     # 5) Version localization — description, keywords, support URL, what's new
