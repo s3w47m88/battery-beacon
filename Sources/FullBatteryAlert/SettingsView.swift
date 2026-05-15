@@ -5,93 +5,112 @@ struct SettingsView: View {
     @ObservedObject var settings: AppSettings
     @ObservedObject var battery: BatteryMonitor
     @ObservedObject var energy: EnergyMonitor
+    @ObservedObject var peripherals: PeripheralBatteryMonitor
+    @StateObject private var stats = BatteryStats()
     var onTestAlert: () -> Void = {}
     @State private var newThreshold: Double = 90
     @State private var hintMessage: String?
 
+    init(settings: AppSettings,
+         battery: BatteryMonitor,
+         energy: EnergyMonitor,
+         peripherals: PeripheralBatteryMonitor = PeripheralBatteryMonitor(),
+         onTestAlert: @escaping () -> Void = {}) {
+        self.settings = settings
+        self.battery = battery
+        self.energy = energy
+        self.peripherals = peripherals
+        self.onTestAlert = onTestAlert
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Native-style battery header
-            HStack(alignment: .firstTextBaseline) {
-                Text("Battery").font(.headline)
-                Spacer()
-                Text("\(battery.percentage)%")
-                    .font(.headline.monospacedDigit())
-                    .foregroundStyle(.secondary)
-            }
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Power Source: \(powerSourceText)")
-                if let timeText = timeRemainingText {
-                    Text(timeText).foregroundStyle(.secondary)
-                }
-                if let powerText = powerFlowText {
-                    Text(powerText)
-                        .foregroundStyle(.secondary)
-                        .monospacedDigit()
-                }
-            }
-            .font(.callout)
-
-            Divider()
-
-            Text("Battery Health").font(.subheadline.weight(.semibold))
-            VStack(alignment: .leading, spacing: 2) {
-                HStack {
-                    Text("Cycle Count")
+        ScrollView {
+            VStack(alignment: .leading, spacing: 10) {
+                // Header
+                HStack(alignment: .firstTextBaseline) {
+                    Text("Battery").font(.headline)
                     Spacer()
-                    Text(battery.cycleCount.map { "\($0) / \(BatteryMonitor.maxCycles)" } ?? "—")
-                        .monospacedDigit()
+                    Text("\(battery.percentage)%")
+                        .font(.headline.monospacedDigit())
                         .foregroundStyle(.secondary)
                 }
-                HStack {
-                    Text("Health")
-                    Spacer()
-                    Text(battery.healthPercent.map { "\($0)%" } ?? "—")
-                        .monospacedDigit()
-                        .foregroundStyle(healthColor(battery.healthPercent))
-                }
-                HStack {
-                    Text("Est. Replacement")
-                    Spacer()
-                    Text(replacementText)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .font(.callout)
 
-            Divider()
+                AccordionSection(id: "general", title: "General", defaultOpen: true) {
+                    generalSection
+                }
 
-            Text("Energy Mode").font(.subheadline.weight(.semibold))
-            HStack(spacing: 8) {
-                Image(systemName: battery.isLowPowerMode ? "battery.25percent" : "battery.100percent")
-                    .foregroundStyle(battery.isLowPowerMode ? .yellow : .secondary)
-                Text(battery.isLowPowerMode ? "Low Power" : "Automatic")
-                Spacer()
-                Button("Battery Settings…") {
-                    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.battery") {
-                        NSWorkspace.shared.open(url)
+                AccordionSection(id: "alerts", title: "Alerts", defaultOpen: true) {
+                    alertsSection
+                }
+
+                AccordionSection(id: "health", title: "Battery Health") {
+                    healthSection
+                }
+
+                AccordionSection(id: "temperature", title: "Temperature") {
+                    temperatureSection
+                }
+
+                AccordionSection(id: "power", title: "Power & Electrical") {
+                    powerSection
+                }
+
+                AccordionSection(id: "capacity", title: "Capacity Details") {
+                    capacitySection
+                }
+
+                PeripheralAccordionSection(monitor: peripherals)
+
+                AccordionSection(id: "apps", title: "Apps Using Energy") {
+                    EnergyListView(monitor: energy, onAction: handleAction)
+                    if let hint = hintMessage {
+                        Text(hint)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .transition(.opacity)
                     }
                 }
-                .buttonStyle(.link)
-                .font(.callout)
+
+                AccordionSection(id: "preferences", title: "Preferences") {
+                    preferencesSection
+                }
+
+                Divider()
+
+                HStack {
+                    Button("Send test alert") { onTestAlert() }
+                    Spacer()
+                    Button("Quit") { NSApplication.shared.terminate(nil) }
+                        .keyboardShortcut("q")
+                }
             }
-            .font(.callout)
+            .padding(16)
+            .frame(width: 340)
+        }
+        .frame(width: 340, height: 480)
+        .onAppear { stats.start() }
+        .onDisappear { stats.stop() }
+    }
 
-            Divider()
+    // MARK: - Sections
 
-            EnergyListView(monitor: energy, onAction: handleAction)
-            if let hint = hintMessage {
-                Text(hint)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .transition(.opacity)
+    @ViewBuilder private var generalSection: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            row("Charge", value: "\(battery.percentage)%")
+            row("Power Source", value: powerSourceText)
+            if let timeText = timeRemainingText {
+                row("Time", value: timeText)
             }
+            if let powerText = powerFlowText {
+                row("State", value: powerText)
+            }
+        }
+        .font(.callout)
+    }
 
-            Divider()
-
-            Text("Alert Thresholds").font(.subheadline.weight(.semibold))
-
+    @ViewBuilder private var alertsSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Alert Thresholds").font(.caption).foregroundStyle(.secondary)
             if settings.thresholds.isEmpty {
                 Text("No thresholds set.")
                     .foregroundStyle(.secondary)
@@ -107,29 +126,132 @@ struct SettingsView: View {
                     )
                 }
             }
-
             HStack {
                 Slider(value: $newThreshold, in: 1...100, step: 1)
                 Text("\(Int(newThreshold))%")
                     .frame(width: 44, alignment: .trailing)
                     .monospacedDigit()
-                Button("Add") {
-                    settings.addThreshold(Int(newThreshold))
-                }
+                Button("Add") { settings.addThreshold(Int(newThreshold)) }
             }
-
             Toggle("Play sound with alert", isOn: $settings.playSound)
                 .font(.callout)
 
-            Toggle("Show percentage inside the icon", isOn: $settings.showPercentageInIcon)
-                .font(.callout)
-
-            Toggle("Open on startup", isOn: $settings.openOnStartup)
-                .font(.callout)
-
             Divider()
+            Text("Peripheral Devices").font(.caption).foregroundStyle(.secondary)
+            Toggle("Alert on peripheral low battery", isOn: $settings.peripheralAlertsEnabled)
+                .font(.callout)
+            HStack {
+                Text("Low")
+                Slider(value: Binding(
+                    get: { Double(settings.peripheralLowThreshold) },
+                    set: { settings.peripheralLowThreshold = Int($0) }
+                ), in: 5...50, step: 1)
+                Text("\(settings.peripheralLowThreshold)%")
+                    .frame(width: 44, alignment: .trailing)
+                    .monospacedDigit()
+            }
+            .font(.callout)
+            .disabled(!settings.peripheralAlertsEnabled)
+            HStack {
+                Text("Critical")
+                Slider(value: Binding(
+                    get: { Double(settings.peripheralCriticalThreshold) },
+                    set: { settings.peripheralCriticalThreshold = Int($0) }
+                ), in: 1...30, step: 1)
+                Text("\(settings.peripheralCriticalThreshold)%")
+                    .frame(width: 44, alignment: .trailing)
+                    .monospacedDigit()
+            }
+            .font(.callout)
+            .disabled(!settings.peripheralAlertsEnabled)
+        }
+    }
 
-            Text("System Battery Indicator").font(.subheadline.weight(.semibold))
+    @ViewBuilder private var healthSection: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            row("Cycle Count", value: battery.cycleCount.map { "\($0) / \(BatteryMonitor.maxCycles)" } ?? "—")
+            row("Health", value: battery.healthPercent.map { "\($0)%" } ?? "—",
+                color: healthColor(battery.healthPercent))
+            if let status = stats.macOSHealthStatus {
+                row("Status", value: status)
+            }
+            if let cond = stats.macOSHealthCondition {
+                row("Condition", value: cond)
+            }
+            row("Est. Replacement", value: replacementText)
+            if let y = stats.ageYears, let m = stats.ageMonths {
+                row("Age", value: "\(y)y \(m)m")
+            }
+            if let d = stats.manufacturedDate {
+                row("Manufactured", value: mediumDate(d))
+            }
+        }
+        .font(.callout)
+    }
+
+    @ViewBuilder private var temperatureSection: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            if let c = stats.temperatureCelsius, let f = stats.temperatureFahrenheit {
+                row("Temperature", value: String(format: "%.1f°C · %.1f°F", c, f))
+            } else {
+                Text("Gathering temperature data…")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    @ViewBuilder private var powerSection: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            if let w = battery.wattage {
+                row("Wattage", value: String(format: "%.1f W", w))
+            }
+            if let v = battery.voltage {
+                row("Voltage", value: String(format: "%.2f V", v))
+            }
+            if let a = battery.amperage {
+                row("Amperage", value: String(format: "%.2f A", a))
+            }
+            HStack {
+                Image(systemName: battery.isLowPowerMode ? "battery.25percent" : "battery.100percent")
+                    .foregroundStyle(battery.isLowPowerMode ? .yellow : .secondary)
+                Text(battery.isLowPowerMode ? "Low Power" : "Automatic")
+                Spacer()
+                Button("Battery Settings…") {
+                    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.battery") {
+                        NSWorkspace.shared.open(url)
+                    }
+                }
+                .buttonStyle(.link)
+            }
+        }
+        .font(.callout)
+    }
+
+    @ViewBuilder private var capacitySection: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            if let d = stats.designCapacityMah {
+                row("Design Capacity", value: "\(d) mAh")
+            }
+            if let m = stats.maxCapacityMah {
+                row("Max Capacity", value: "\(m) mAh")
+            }
+            if let c = stats.currentCapacityMah {
+                row("Current Charge", value: "\(c) mAh")
+            }
+            if stats.designCapacityMah == nil && stats.maxCapacityMah == nil && stats.currentCapacityMah == nil {
+                Text("Gathering capacity data…")
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .font(.callout)
+    }
+
+    @ViewBuilder private var preferencesSection: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Toggle("Show percentage inside the icon", isOn: $settings.showPercentageInIcon)
+            Toggle("Open on startup", isOn: $settings.openOnStartup)
+            Divider()
             Button("Hide system battery indicator") {
                 SystemBatteryIndicator.hide()
             }
@@ -137,22 +259,23 @@ struct SettingsView: View {
                 .font(.caption)
                 .foregroundStyle(.tertiary)
                 .fixedSize(horizontal: false, vertical: true)
-
             Text("Tip: ⌘-drag this icon to reposition.")
                 .font(.caption)
                 .foregroundStyle(.tertiary)
-
-            Divider()
-
-            HStack {
-                Button("Send test alert") { onTestAlert() }
-                Spacer()
-                Button("Quit") { NSApplication.shared.terminate(nil) }
-                    .keyboardShortcut("q")
-            }
         }
-        .padding(16)
-        .frame(width: 340)
+        .font(.callout)
+    }
+
+    // MARK: - Helpers
+
+    @ViewBuilder private func row(_ label: String, value: String, color: Color? = nil) -> some View {
+        HStack {
+            Text(label)
+            Spacer()
+            Text(value)
+                .monospacedDigit()
+                .foregroundStyle(color ?? .secondary)
+        }
     }
 
     private var powerSourceText: String {
@@ -213,7 +336,6 @@ struct SettingsView: View {
         alert.addButton(withTitle: "Force Quit")
         alert.addButton(withTitle: "Cancel")
         if let popoverWindow = NSApp.keyWindow, popoverWindow.isVisible {
-            // Bring the popover's window forward so the alert anchors visibly.
             popoverWindow.makeKeyAndOrderFront(nil)
         }
         let response = alert.runModal()
@@ -222,9 +344,6 @@ struct SettingsView: View {
     }
 
     private func forceQuit(_ app: AppEnergy) {
-        // Prefer NSRunningApplication.terminate() for user apps (sends Cmd-Q
-        // gracefully); fall back to kill() for system processes that aren't
-        // backed by an NSRunningApplication.
         for pid in app.pids {
             if let running = NSRunningApplication(processIdentifier: pid) {
                 running.terminate()
@@ -257,10 +376,7 @@ struct SettingsView: View {
             return "Gathering data…"
         }
         if date <= Date() { return "Now" }
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .none
-        let when = formatter.string(from: date)
+        let when = mediumDate(date)
         let years = date.timeIntervalSinceNow / (365.25 * 86_400)
         let suffix: String
         if years >= 1 {
@@ -270,6 +386,13 @@ struct SettingsView: View {
             suffix = String(format: " (~%.0f mo)", max(months, 1))
         }
         return when + suffix
+    }
+
+    private func mediumDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        return formatter.string(from: date)
     }
 
     private func healthColor(_ pct: Int?) -> Color {

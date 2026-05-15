@@ -21,6 +21,9 @@ targets:
     deploymentTarget: "14.0"
     sources:
       - path: Sources/FullBatteryAlert
+      - path: Sources/FullBatteryAlertShared
+    dependencies:
+      - target: FullBatteryAlertWidgets
     info:
       path: Sources/FullBatteryAlert/Info.plist
       properties:
@@ -36,9 +39,45 @@ targets:
       path: Sources/FullBatteryAlert/FullBatteryAlert.entitlements
       properties:
         com.apple.security.app-sandbox: true
+        com.apple.security.application-groups:
+          - group.com.spencerhill.fullbatteryalert
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.spencerhill.fullbatteryalert
         PRODUCT_NAME: "Battery Charged Notification"
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_KEY_LSUIElement: YES
+
+  FullBatteryAlertWidgets:
+    type: app-extension
+    platform: macOS
+    deploymentTarget: "14.0"
+    productType: com.apple.product-type.app-extension
+    sources:
+      - path: Sources/FullBatteryAlertWidgets
+        excludes:
+          - "*.entitlements"
+          - "Info.plist"
+      - path: Sources/FullBatteryAlertShared
+    info:
+      path: Sources/FullBatteryAlertWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: Battery Charged Widgets
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: Sources/FullBatteryAlertWidgets/FullBatteryAlertWidgets.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.application-groups:
+          - group.com.spencerhill.fullbatteryalert
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.spencerhill.fullbatteryalert.widgets
+        PRODUCT_NAME: FullBatteryAlertWidgets
+        GENERATE_INFOPLIST_FILE: NO
+        SKIP_INSTALL: YES
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_IDENTITY: "Apple Development"
+        PROVISIONING_PROFILE_SPECIFIER: ""
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/../../../../Frameworks @executable_path/../../Frameworks"
