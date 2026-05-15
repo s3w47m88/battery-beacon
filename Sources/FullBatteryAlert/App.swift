@@ -15,6 +15,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let settings = AppSettings()
     private let battery = BatteryMonitor()
     private let energy = EnergyMonitor()
+    private let peripherals = PeripheralBatteryMonitor()
 
     private var statusItem: NSStatusItem!
     private var settingsPopover: NSPopover!
@@ -49,7 +50,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     self.presentAlertPopover(threshold: threshold, percentage: pct)
                 }
             )
+            // Piggyback peripheral refresh + alert eval on the system battery tick
+            // — IOPS callbacks happen on every meaningful battery state change,
+            // and the IORegistry attach/detach notifications cover hot-plug.
+            self.peripherals.refresh()
+            self.evaluatePeripheralAlerts()
         }
+        peripherals.onLowBattery = { [weak self] device, isCritical in
+            guard let self, self.settings.peripheralAlertsEnabled else { return }
+            AlertManager.shared.notifyPeripheralLow(device: device, isCritical: isCritical)
+        }
+        evaluatePeripheralAlerts()
         AlertManager.shared.handleUpdate(
             percentage: battery.percentage, isCharging: battery.isCharging, isPluggedIn: battery.isPluggedIn,
             settings: settings, onFire: { _ in }
@@ -73,6 +84,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 settings: settings,
                 battery: battery,
                 energy: energy,
+                peripherals: peripherals,
                 onTestAlert: { [weak self] in self?.presentAlertPopover(threshold: 100, percentage: self?.battery.percentage ?? 100) }
             )
         )
@@ -108,6 +120,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             settingsPopover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             settingsPopover.contentViewController?.view.window?.makeKey()
         }
+    }
+
+    private func evaluatePeripheralAlerts() {
+        guard settings.peripheralAlertsEnabled else { return }
+        peripherals.evaluateAlerts(
+            lowThreshold: settings.peripheralLowThreshold,
+            criticalThreshold: settings.peripheralCriticalThreshold
+        )
     }
 
     func presentAlertPopover(threshold: Int, percentage: Int) {

@@ -24,6 +24,18 @@ final class AppSettings: ObservableObject {
         }
     }
 
+    @Published var peripheralAlertsEnabled: Bool {
+        didSet { defaults.set(peripheralAlertsEnabled, forKey: "peripheralAlertsEnabled") }
+    }
+
+    @Published var peripheralLowThreshold: Int {
+        didSet { defaults.set(peripheralLowThreshold, forKey: "peripheralLowThreshold") }
+    }
+
+    @Published var peripheralCriticalThreshold: Int {
+        didSet { defaults.set(peripheralCriticalThreshold, forKey: "peripheralCriticalThreshold") }
+    }
+
     init() {
         if let arr = UserDefaults.standard.array(forKey: "thresholds") as? [Int], !arr.isEmpty {
             self.thresholds = arr
@@ -33,6 +45,9 @@ final class AppSettings: ObservableObject {
         self.playSound = (UserDefaults.standard.object(forKey: "playSound") as? Bool) ?? true
         self.showPercentageInIcon = (UserDefaults.standard.object(forKey: "showPercentageInIcon") as? Bool) ?? true
         self.openOnStartup = (UserDefaults.standard.object(forKey: "openOnStartup") as? Bool) ?? true
+        self.peripheralAlertsEnabled = (UserDefaults.standard.object(forKey: "peripheralAlertsEnabled") as? Bool) ?? true
+        self.peripheralLowThreshold = (UserDefaults.standard.object(forKey: "peripheralLowThreshold") as? Int) ?? 20
+        self.peripheralCriticalThreshold = (UserDefaults.standard.object(forKey: "peripheralCriticalThreshold") as? Int) ?? 10
         applyOpenOnStartup()
     }
 
