@@ -7,8 +7,8 @@ options:
 settings:
   base:
     DEVELOPMENT_TEAM: VP38993WK6
-    MARKETING_VERSION: "0.1.4"
-    CURRENT_PROJECT_VERSION: "6"
+    MARKETING_VERSION: "1.0.1"
+    CURRENT_PROJECT_VERSION: "8"
     SWIFT_VERSION: "5.9"
     CODE_SIGN_STYLE: Manual
     CODE_SIGN_IDENTITY: "Apple Distribution"
@@ -33,6 +33,8 @@ targets:
       properties:
         CFBundleDisplayName: Battery Charged Notification
         CFBundleName: Battery Charged Notification
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSUIElement: YES
         LSMinimumSystemVersion: "14.0"
         NSHumanReadableCopyright: "MIT License"
@@ -68,6 +70,8 @@ targets:
       path: Sources/FullBatteryAlertWidgets/Info.plist
       properties:
         CFBundleDisplayName: Battery Charged Widgets
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     entitlements:

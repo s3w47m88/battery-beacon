@@ -104,10 +104,11 @@ platform :mac do
     version = app.get_edit_app_store_version(platform: "MAC_OS")
     if version.nil?
       UI.message("No editable version; creating #{desired_version}")
-      version = Spaceship::ConnectAPI::AppStoreVersion.create(
+      resp = Spaceship::ConnectAPI.post_app_store_version(
         app_id: app.id,
         attributes: { platform: "MAC_OS", versionString: desired_version, releaseType: "AFTER_APPROVAL", copyright: "2026 Spencer Hill" }
       )
+      version = resp.to_models.first
     elsif version.version_string != desired_version
       UI.message("Updating editable version #{version.version_string} -> #{desired_version}")
       Spaceship::ConnectAPI.patch_app_store_version(app_store_version_id: version.id, attributes: { versionString: desired_version }) rescue UI.message("version rename: #{$!.message[0..200]}")
@@ -122,7 +123,8 @@ platform :mac do
       keywords: "battery,alert,charge,menu bar,notification,utility,laptop,macbook",
       supportUrl: "https://github.com/s3w47m88/battery-charged-notification",
       marketingUrl: "https://github.com/s3w47m88/battery-charged-notification",
-      promotionalText: "Never overcharge your Mac again."
+      promotionalText: "Never overcharge your Mac again.",
+      whatsNew: "Refreshed App Store screenshots to better reflect the actual app."
     }) rescue UI.message("version loc: #{$!.message[0..200]}")
     UI.success("Version localization updated")
 
@@ -140,8 +142,38 @@ platform :mac do
       UI.message("build link: #{e.message[0..200]}")
     end
 
-    # 8) Screenshot upload skipped — 10 already present from prior runs.
-    UI.message("Screenshot upload skipped (set already full from prior runs)")
+    # 8) Screenshot upload — replace all existing with current *-store.png files
+    begin
+      require 'net/http'
+      sets = Spaceship::ConnectAPI.get_app_screenshot_sets(app_store_version_localization_id: en_v.id).to_models
+      desktop_sets = sets.select { |s| s.screenshot_display_type == "APP_DESKTOP" }
+      desktop_sets.each do |set|
+        Spaceship::ConnectAPI.delete_app_screenshot_set(app_screenshot_set_id: set.id) rescue UI.message("del set fail: #{$!.message[0..200]}")
+      end
+      resp = Spaceship::ConnectAPI.post_app_screenshot_set(app_store_version_localization_id: en_v.id, attributes: { screenshotDisplayType: "APP_DESKTOP" })
+      mac_set = resp.to_models.first
+      files = Dir[File.expand_path("screenshots/en-US/*-store.png", __dir__)].sort
+      files.each do |file|
+        bytes = File.binread(file)
+        resp = Spaceship::ConnectAPI.post_app_screenshot(app_screenshot_set_id: mac_set.id, attributes: { fileName: File.basename(file), fileSize: bytes.bytesize })
+        upload = resp.to_models.first
+        op = upload.upload_operations.first
+        headers = {}
+        op["requestHeaders"].each { |h| headers[h["name"]] = h["value"] }
+        uri = URI(op["url"])
+        http = Net::HTTP.new(uri.host, uri.port); http.use_ssl = (uri.scheme == "https")
+        klass = Net::HTTP.const_get(op["method"].capitalize)
+        req = klass.new(uri.request_uri)
+        headers.each { |k,vv| req[k] = vv }
+        req.body = bytes
+        http.request(req)
+        Spaceship::ConnectAPI.patch_app_screenshot(app_screenshot_id: upload.id, attributes: { uploaded: true, sourceFileChecksum: Digest::MD5.hexdigest(bytes) })
+        UI.message("uploaded #{File.basename(file)}")
+      end
+      UI.success("Screenshots replaced (#{files.size})")
+    rescue => e
+      UI.error("screenshot upload: #{e.message[0..400]}")
+    end
 
     # 8.5) App Privacy — declare "No data collected" and publish
     begin
@@ -742,21 +774,15 @@ platform :mac do
     UI.message("existing sets: #{existing_sets.size}")
     desktop_sets = existing_sets.select { |s| s.screenshot_display_type == "APP_DESKTOP" }
     desktop_sets.each do |set|
-      shots = Spaceship::ConnectAPI.get_app_screenshots(filter: { appScreenshotSet: set.id }).to_models rescue []
-      shots.each do |s|
-        begin
-          Spaceship::ConnectAPI.delete_app_screenshot(app_screenshot_id: s.id)
-          UI.message("deleted screenshot #{s.id}")
-        rescue => e
-          UI.message("del fail: #{e.message[0..200]}")
-        end
+      begin
+        Spaceship::ConnectAPI.delete_app_screenshot_set(app_screenshot_set_id: set.id)
+        UI.message("deleted set #{set.id}")
+      rescue => e
+        UI.message("del set fail: #{e.message[0..200]}")
       end
     end
-    mac_set = desktop_sets.first
-    if mac_set.nil?
-      resp = Spaceship::ConnectAPI.post_app_screenshot_set(app_store_version_localization_id: en.id, attributes: { screenshotDisplayType: "APP_DESKTOP" })
-      mac_set = resp.to_models.first
-    end
+    resp = Spaceship::ConnectAPI.post_app_screenshot_set(app_store_version_localization_id: en.id, attributes: { screenshotDisplayType: "APP_DESKTOP" })
+    mac_set = resp.to_models.first
     UI.message("mac set #{mac_set.id}")
     # Upload every *-store.png in en-US/, in sorted order.
     files = Dir[File.expand_path("screenshots/en-US/*-store.png", __dir__)].sort
@@ -778,7 +804,7 @@ platform :mac do
       req.body = bytes
       res = http.request(req)
       UI.message("upload #{File.basename(file)} #{op["method"]} -> #{res.code}")
-      Spaceship::ConnectAPI.patch_app_screenshot(app_screenshot_id: upload.id, source_file_checksum: Digest::MD5.hexdigest(bytes), uploaded: true)
+      Spaceship::ConnectAPI.patch_app_screenshot(app_screenshot_id: upload.id, attributes: { uploaded: true, sourceFileChecksum: Digest::MD5.hexdigest(bytes) })
     end
     UI.success("Uploaded #{files.size} screenshot(s) to version #{v.version_string}")
   end
