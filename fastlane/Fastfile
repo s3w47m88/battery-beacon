@@ -808,4 +808,114 @@ platform :mac do
     end
     UI.success("Uploaded #{files.size} screenshot(s) to version #{v.version_string}")
   end
+
+  desc 'Diagnostic: list recent uploaded builds'
+  lane :asc_builds do
+    require 'spaceship'
+    token = Spaceship::ConnectAPI::Token.create(key_id: "XG3FW9LT9Q", issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d", filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8"))
+    Spaceship::ConnectAPI.token = token
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.fullbatteryalert")
+    builds = Spaceship::ConnectAPI::Build.all(app_id: app.id, sort: "-uploadedDate", limit: 8)
+    builds.each { |b| UI.message("  #{b.app_version}(#{b.version}) state=#{b.processing_state} expired=#{b.expired} id=#{b.id}") }
+  end
+
+  desc 'Attach the latest uploaded build to the editable App Store version and submit for review'
+  lane :attach_and_submit do
+    require 'spaceship'
+    token = Spaceship::ConnectAPI::Token.create(key_id: "XG3FW9LT9Q", issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d", filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8"))
+    Spaceship::ConnectAPI.token = token
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.fullbatteryalert")
+    version = app.get_edit_app_store_version(platform: "MAC_OS")
+    UI.user_error!("No editable version") unless version
+    UI.message("Version #{version.version_string} state=#{version.app_store_state}")
+
+    target = ENV["SUBMIT_BUILD"] || "9"
+    builds = Spaceship::ConnectAPI::Build.all(app_id: app.id, sort: "-uploadedDate", limit: 20)
+    build = builds.find { |b| b.app_version == version.version_string && b.version == target }
+    UI.user_error!("Build #{version.version_string}(#{target}) not found in App Store Connect") unless build
+    UI.message("Found build #{build.app_version}(#{build.version}) state=#{build.processing_state}")
+    UI.user_error!("Build still processing (state=#{build.processing_state}) — wait and retry") unless build.processing_state == "VALID"
+
+    Spaceship::ConnectAPI.patch_app_store_version_with_build(app_store_version_id: version.id, build_id: build.id)
+    UI.success("Attached build #{build.version} to #{version.version_string}")
+
+    sub = Spaceship::ConnectAPI.post_review_submission(app_id: app.id, platform: "MAC_OS")
+    sub_id = sub.to_models.first.id
+    Spaceship::ConnectAPI.post_review_submission_item(review_submission_id: sub_id, app_store_version_id: version.id)
+    Spaceship::ConnectAPI.patch_review_submission(review_submission_id: sub_id, attributes: { submitted: true })
+    UI.success("Submitted #{version.version_string} for App Store review (submission #{sub_id})")
+  end
+
+  desc 'Diagnostic: list every App Store version with id and state'
+  lane :asc_versions do
+    require 'spaceship'
+    token = Spaceship::ConnectAPI::Token.create(key_id: "XG3FW9LT9Q", issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d", filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8"))
+    Spaceship::ConnectAPI.token = token
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.fullbatteryalert")
+    all = Spaceship::ConnectAPI.get_app_store_versions(app_id: app.id, filter: { platform: "MAC_OS" }).to_models
+    all.each { |v| UI.message("  #{v.version_string} state=#{v.app_store_state} id=#{v.id}") }
+  end
+
+  desc 'Create ASC version 1.0.3 (alongside in-review 1.0.2) and upload current screenshots — no build attached, no submission'
+  lane :stage_1_0_3 do
+    require 'spaceship'
+    require 'digest'
+    require 'net/http'
+    token = Spaceship::ConnectAPI::Token.create(key_id: "XG3FW9LT9Q", issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d", filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8"))
+    Spaceship::ConnectAPI.token = token
+
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.fullbatteryalert")
+    all = Spaceship::ConnectAPI.get_app_store_versions(app_id: app.id, filter: { platform: "MAC_OS", versionString: "1.0.3" }).to_models
+    if (existing = all.find { |v| v.version_string == "1.0.3" })
+      version = existing
+      UI.message("Reusing existing 1.0.2 (state=#{version.app_store_state})")
+    else
+      UI.message("Creating new 1.0.2 alongside in-review 1.0.1")
+      resp = Spaceship::ConnectAPI.post_app_store_version(
+        app_id: app.id,
+        attributes: { platform: "MAC_OS", versionString: "1.0.3", releaseType: "AFTER_APPROVAL", copyright: "2026 Spencer Hill" }
+      )
+      version = resp.to_models.first
+    end
+    UI.message("Version #{version.version_string} state=#{version.app_store_state} id=#{version.id}")
+
+    locs = Spaceship::ConnectAPI.get_app_store_version_localizations(app_store_version_id: version.id).to_models
+    en = locs.find { |l| l.locale == "en-US" }
+    Spaceship::ConnectAPI.patch_app_store_version_localization(app_store_version_localization_id: en.id, attributes: {
+      description: "Battery Charged Notification is a tiny menu bar utility that notifies you the moment your Mac's battery reaches the percentage you choose — so you can unplug at 95%, 100%, or any threshold you set, and never overcharge.\n\nFeatures:\n• Lives in the menu bar; shows current battery % and a charging bolt.\n• Configurable alert thresholds with sliders (default 95% and 100%).\n• Native macOS notifications fire near the battery icon at each threshold while plugged in.\n• Optional alert sound.\n• Thresholds reset automatically when you unplug — one alert per threshold per charge cycle.\n• Built with SwiftUI; respects your system theme, including Liquid Glass on macOS 26.",
+      keywords: "battery,alert,charge,menu bar,notification,utility,laptop,macbook",
+      supportUrl: "https://github.com/s3w47m88/battery-charged-notification",
+      marketingUrl: "https://github.com/s3w47m88/battery-charged-notification",
+      promotionalText: "Never overcharge your Mac again.",
+      whatsNew: "Refreshed App Store screenshots."
+    }) rescue UI.message("loc patch: #{$!.message[0..300]}")
+
+    sets = Spaceship::ConnectAPI.get_app_screenshot_sets(app_store_version_localization_id: en.id).to_models
+    sets.select { |s| s.screenshot_display_type == "APP_DESKTOP" }.each do |s|
+      Spaceship::ConnectAPI.delete_app_screenshot_set(app_screenshot_set_id: s.id) rescue UI.message("del set: #{$!.message[0..200]}")
+    end
+    resp = Spaceship::ConnectAPI.post_app_screenshot_set(app_store_version_localization_id: en.id, attributes: { screenshotDisplayType: "APP_DESKTOP" })
+    mac_set = resp.to_models.first
+    UI.message("mac set: #{mac_set.id}")
+
+    files = Dir[File.expand_path("screenshots/en-US/*-store.png", __dir__)].sort
+    raise "no *-store.png screenshots" if files.empty?
+    files.each do |file|
+      bytes = File.binread(file)
+      resp = Spaceship::ConnectAPI.post_app_screenshot(app_screenshot_set_id: mac_set.id, attributes: { fileName: File.basename(file), fileSize: bytes.bytesize })
+      upload = resp.to_models.first
+      op = upload.upload_operations.first
+      headers = {}; op["requestHeaders"].each { |h| headers[h["name"]] = h["value"] }
+      uri = URI(op["url"])
+      http = Net::HTTP.new(uri.host, uri.port); http.use_ssl = (uri.scheme == "https")
+      klass = Net::HTTP.const_get(op["method"].capitalize)
+      req = klass.new(uri.request_uri)
+      headers.each { |k, vv| req[k] = vv }
+      req.body = bytes
+      res = http.request(req)
+      UI.message("  upload #{File.basename(file)} -> #{res.code}")
+      Spaceship::ConnectAPI.patch_app_screenshot(app_screenshot_id: upload.id, attributes: { uploaded: true, sourceFileChecksum: Digest::MD5.hexdigest(bytes) })
+    end
+    UI.success("Staged 1.0.2 with #{files.size} screenshot(s) — no build attached, not submitted.")
+  end
 end
