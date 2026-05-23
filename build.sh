@@ -17,7 +17,7 @@ swiftc -O \
   -target arm64-apple-macos14.0 \
   -framework AppKit -framework SwiftUI -framework UserNotifications -framework IOKit -framework Combine \
   -o "$MACOS_DIR/$BIN_NAME" \
-  Sources/FullBatteryAlert/*.swift
+  Sources/FullBatteryAlert/*.swift Sources/FullBatteryAlertShared/*.swift
 
 cat > "$CONTENTS/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
