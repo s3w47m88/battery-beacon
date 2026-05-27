@@ -6,7 +6,7 @@
 	<true/>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.com.spencerhill.fullbatteryalert</string>
+		<string>group.com.spencerhill.batterybeacon</string>
 	</array>
 </dict>
 </plist>

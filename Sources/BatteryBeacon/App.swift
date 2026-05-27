@@ -3,7 +3,7 @@ import AppKit
 import Combine
 
 @main
-struct FullBatteryAlertApp: App {
+struct BatteryBeaconApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     var body: some Scene {
         Settings { EmptyView() } // Required Scene; never shown (LSUIElement).

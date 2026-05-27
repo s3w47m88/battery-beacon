@@ -2,7 +2,7 @@ import WidgetKit
 import SwiftUI
 
 @main
-struct FullBatteryAlertWidgetsBundle: WidgetBundle {
+struct BatteryBeaconWidgetsBundle: WidgetBundle {
     var body: some Widget {
         PercentageWidget()
         TemperatureWidget()
