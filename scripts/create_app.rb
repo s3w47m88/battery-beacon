@@ -4,9 +4,9 @@ require 'spaceship'
 KEY_ID = "XG3FW9LT9Q"
 ISSUER_ID = "178bab61-1c45-4f62-9525-55f8ed15a98d"
 KEY_PATH = File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8")
-BUNDLE_ID = "com.spencerhill.fullbatteryalert"
-APP_NAME = "Battery Charged Notification"
-SKU = "fullbatteryalert001"
+BUNDLE_ID = "com.spencerhill.batterybeacon"
+APP_NAME = "Battery Beacon"
+SKU = "batterybeacon001"
 
 token = Spaceship::ConnectAPI::Token.create(
   key_id: KEY_ID,
@@ -22,7 +22,7 @@ if existing_bid
 else
   puts "Registering bundle ID #{BUNDLE_ID}..."
   Spaceship::ConnectAPI::BundleId.create(
-    name: "Battery Charged Notification",
+    name: "Battery Beacon",
     platform: Spaceship::ConnectAPI::BundleIdPlatform::MAC_OS,
     identifier: BUNDLE_ID
   )

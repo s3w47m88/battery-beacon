@@ -20,14 +20,14 @@ platform :mac do
     )
     Spaceship::ConnectAPI.token = token
 
-    bundle_id = "com.spencerhill.fullbatteryalert"
+    bundle_id = "com.spencerhill.batterybeacon"
     existing_bid = Spaceship::ConnectAPI::BundleId.all(filter: { identifier: bundle_id }).first
     if existing_bid
       UI.message("Bundle ID #{bundle_id} already registered")
     else
       UI.message("Registering bundle ID #{bundle_id}")
       Spaceship::ConnectAPI::BundleId.create(
-        name: "Battery Charged Notification",
+        name: "Battery Beacon",
         platform: Spaceship::ConnectAPI::BundleIdPlatform::MAC_OS,
         identifier: bundle_id
       )
@@ -39,9 +39,9 @@ platform :mac do
     else
       UI.message("Creating ASC app record")
       app = Spaceship::ConnectAPI::App.create(
-        name: "Battery Charged Notification",
+        name: "Battery Beacon",
         version_string: "0.1.0",
-        sku: "fullbatteryalert001",
+        sku: "batterybeacon001",
         primary_locale: "en-US",
         bundle_id: bundle_id,
         platforms: [Spaceship::ConnectAPI::Platform::MAC_OS]
@@ -60,7 +60,7 @@ platform :mac do
       filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8")
     )
     Spaceship::ConnectAPI.token = token
-    app = Spaceship::ConnectAPI::App.find("com.spencerhill.fullbatteryalert")
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
     build = Spaceship::ConnectAPI::Build.all(app_id: app.id, sort: "-uploadedDate", limit: 1).first
     UI.message("App: #{app.id}, Build: #{build.version} (#{build.processing_state})")
 
@@ -92,9 +92,9 @@ platform :mac do
     en_loc = info_locs.find { |l| l.locale == "en-US" }
     if en_loc
       Spaceship::ConnectAPI.patch_app_info_localization(app_info_localization_id: en_loc.id, attributes: {
-        name: "Battery Charged Notification",
+        name: "Battery Beacon",
         subtitle: "Battery-percentage alerts",
-        privacyPolicyUrl: "https://github.com/s3w47m88/battery-charged-notification"
+        privacyPolicyUrl: "https://github.com/s3w47m88/battery-beacon"
       }) rescue UI.message("info loc: #{$!.message[0..120]}")
       UI.success("App info localization updated")
     end
@@ -119,10 +119,10 @@ platform :mac do
     locs = Spaceship::ConnectAPI.get_app_store_version_localizations(app_store_version_id: version.id).to_models
     en_v = locs.find { |l| l.locale == "en-US" }
     Spaceship::ConnectAPI.patch_app_store_version_localization(app_store_version_localization_id: en_v.id, attributes: {
-      description: "Battery Charged Notification is a tiny menu bar utility that notifies you the moment your Mac's battery reaches the percentage you choose — so you can unplug at 95%, 100%, or any threshold you set, and never overcharge.\n\nFeatures:\n• Lives in the menu bar; shows current battery % and a charging bolt.\n• Configurable alert thresholds with sliders (default 95% and 100%).\n• Native macOS notifications fire near the battery icon at each threshold while plugged in.\n• Optional alert sound.\n• Thresholds reset automatically when you unplug — one alert per threshold per charge cycle.\n• Built with SwiftUI; respects your system theme, including Liquid Glass on macOS 26.",
+      description: "Battery Beacon is a tiny menu bar utility that notifies you the moment your Mac's battery reaches the percentage you choose — so you can unplug at 95%, 100%, or any threshold you set, and never overcharge.\n\nFeatures:\n• Lives in the menu bar; shows current battery % and a charging bolt.\n• Configurable alert thresholds with sliders (default 95% and 100%).\n• Native macOS notifications fire near the battery icon at each threshold while plugged in.\n• Optional alert sound.\n• Thresholds reset automatically when you unplug — one alert per threshold per charge cycle.\n• Built with SwiftUI; respects your system theme, including Liquid Glass on macOS 26.",
       keywords: "battery,alert,charge,menu bar,notification,utility,laptop,macbook",
-      supportUrl: "https://github.com/s3w47m88/battery-charged-notification",
-      marketingUrl: "https://github.com/s3w47m88/battery-charged-notification",
+      supportUrl: "https://github.com/s3w47m88/battery-beacon",
+      marketingUrl: "https://github.com/s3w47m88/battery-beacon",
       promotionalText: "Never overcharge your Mac again.",
       whatsNew: "Refreshed App Store screenshots to better reflect the actual app."
     }) rescue UI.message("version loc: #{$!.message[0..200]}")
@@ -303,7 +303,7 @@ platform :mac do
       filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8")
     )
     Spaceship::ConnectAPI.token = token
-    app = Spaceship::ConnectAPI::App.find("com.spencerhill.fullbatteryalert")
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
     build = Spaceship::ConnectAPI::Build.all(app_id: app.id, sort: "-uploadedDate", limit: 1).first
     UI.message("Submitting build #{build.version} for beta review")
     # Beta app localization (description, feedback email) — upsert
@@ -359,7 +359,7 @@ platform :mac do
       filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8")
     )
     Spaceship::ConnectAPI.token = token
-    app = Spaceship::ConnectAPI::App.find("com.spencerhill.fullbatteryalert")
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
     email = options[:email] or UI.user_error!("pass email:...")
     first = options[:first] || email.split("@").first.capitalize
     last = options[:last] || "Tester"
@@ -381,7 +381,7 @@ platform :mac do
       filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8")
     )
     Spaceship::ConnectAPI.token = token
-    app = Spaceship::ConnectAPI::App.find("com.spencerhill.fullbatteryalert")
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
     group = app.get_beta_groups.find { |g| g.name == "Internal Testers" }
     UI.message("Group #{group.id} currently internal=#{group.is_internal_group}")
     begin
@@ -401,7 +401,7 @@ platform :mac do
       filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8")
     )
     Spaceship::ConnectAPI.token = token
-    app = Spaceship::ConnectAPI::App.find("com.spencerhill.fullbatteryalert")
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
     groups = app.get_beta_groups.select { |g| g.name == "Internal Testers" }
     keeper = groups.last  # the one with build + tester
     groups[0...-1].each do |g|
@@ -420,7 +420,7 @@ platform :mac do
       filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8")
     )
     Spaceship::ConnectAPI.token = token
-    app = Spaceship::ConnectAPI::App.find("com.spencerhill.fullbatteryalert")
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
 
     groups = app.get_beta_groups
     UI.message("All groups: #{groups.map { |g| "#{g.name}(internal=#{g.is_internal_group})" }.join(', ')}")
@@ -481,7 +481,7 @@ platform :mac do
       filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8")
     )
     Spaceship::ConnectAPI.token = token
-    app = Spaceship::ConnectAPI::App.find("com.spencerhill.fullbatteryalert")
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
     build = Spaceship::ConnectAPI::Build.all(app_id: app.id, sort: "-uploadedDate", limit: 1).first
     UI.message("Build #{build.version}: processing=#{build.processing_state}")
     # Beta App Review Submissions
@@ -505,7 +505,7 @@ platform :mac do
       filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8")
     )
     Spaceship::ConnectAPI.token = token
-    app = Spaceship::ConnectAPI::App.find("com.spencerhill.fullbatteryalert")
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
     subs = Spaceship::ConnectAPI.get_review_submissions(app_id: app.id).to_models
     subs.each { |s| UI.message("review submission #{s.id}: state=#{s.state} submitted=#{s.submitted_date}") }
     version = app.get_edit_app_store_version(platform: "MAC_OS") || app.get_latest_app_store_version(platform: "MAC_OS")
@@ -524,7 +524,7 @@ platform :mac do
       filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8")
     )
     Spaceship::ConnectAPI.token = token
-    app = Spaceship::ConnectAPI::App.find("com.spencerhill.fullbatteryalert")
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
     builds = Spaceship::ConnectAPI::Build.all(app_id: app.id, sort: "-uploadedDate", limit: 5)
     builds.each { |b| UI.message("build #{b.version}: processing=#{b.processing_state} uploaded=#{b.uploaded_date}") }
   end
@@ -538,7 +538,7 @@ platform :mac do
       filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8")
     )
     Spaceship::ConnectAPI.token = token
-    app = Spaceship::ConnectAPI::App.find("com.spencerhill.fullbatteryalert")
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
     subs = Spaceship::ConnectAPI.get_review_submissions(app_id: app.id).to_models
     subs.each do |s|
       next unless ["READY_FOR_REVIEW","WAITING_FOR_REVIEW","IN_REVIEW"].include?(s.state)
@@ -547,7 +547,7 @@ platform :mac do
     end
     # Also rename app record so the app's display name in ASC is updated
     begin
-      Spaceship::ConnectAPI.patch_app(app_id: app.id, attributes: { name: "Battery Charged Notification" })
+      Spaceship::ConnectAPI.patch_app(app_id: app.id, attributes: { name: "Battery Beacon" })
       UI.success("App display name updated")
     rescue => e
       UI.message("app name: #{e.message[0..200]}")
@@ -563,11 +563,11 @@ platform :mac do
       filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8")
     )
     Spaceship::ConnectAPI.token = token
-    app = Spaceship::ConnectAPI::App.find("com.spencerhill.fullbatteryalert")
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
     build = Spaceship::ConnectAPI::Build.all(app_id: app.id, sort: "-uploadedDate", limit: 1).first
     UI.message("Submitting build #{build.version} (#{build.processing_state}) for Beta review")
     begin
-      Spaceship::ConnectAPI.post_beta_build_localizations(build_id: build.id, attributes: { locale: "en-US", whatsNew: "Renamed app to Battery Charged Notification to comply with Apple trademark guidance." })
+      Spaceship::ConnectAPI.post_beta_build_localizations(build_id: build.id, attributes: { locale: "en-US", whatsNew: "Renamed app to Battery Beacon to comply with Apple trademark guidance." })
     rescue
     end
     Spaceship::ConnectAPI.post_beta_app_review_submissions(build_id: build.id)
@@ -578,7 +578,7 @@ platform :mac do
   lane :reupload do
     upload_to_testflight(
       api_key: API_KEY.call,
-      pkg: "build/fastlane/Battery Charged Notification.pkg",
+      pkg: "build/fastlane/Battery Beacon.pkg",
       skip_waiting_for_build_processing: true
     )
   end
@@ -644,7 +644,7 @@ platform :mac do
     )
     get_provisioning_profile(
       api_key: api_key,
-      app_identifier: "com.spencerhill.fullbatteryalert",
+      app_identifier: "com.spencerhill.batterybeacon",
       platform: "macos",
       developer_id: false,
       output_path: "fastlane/profiles"
@@ -662,16 +662,16 @@ platform :mac do
     )
     Spaceship::ConnectAPI.token = token
 
-    widget_bid = "com.spencerhill.fullbatteryalert.widgets"
-    main_bid   = "com.spencerhill.fullbatteryalert"
-    group_id   = "group.com.spencerhill.fullbatteryalert"
+    widget_bid = "com.spencerhill.batterybeacon.widgets"
+    main_bid   = "com.spencerhill.batterybeacon"
+    group_id   = "group.com.spencerhill.batterybeacon"
 
     # 1) Ensure widget bundle ID exists
     widget = Spaceship::ConnectAPI::BundleId.all(filter: { identifier: widget_bid }).first
     if widget.nil?
       UI.message("Creating widget bundle ID")
       widget = Spaceship::ConnectAPI::BundleId.create(
-        name: "Battery Charged Widgets",
+        name: "Battery Beacon Widgets",
         platform: Spaceship::ConnectAPI::BundleIdPlatform::MAC_OS,
         identifier: widget_bid
       )
@@ -688,7 +688,7 @@ platform :mac do
       body = {
         data: {
           type: "appGroups",
-          attributes: { identifier: group_id, name: "Battery Charged App Group" }
+          attributes: { identifier: group_id, name: "Battery Beacon App Group" }
         }
       }
       created = client.post("appGroups", body)
@@ -731,28 +731,28 @@ platform :mac do
     )
     profile = get_provisioning_profile(
       api_key: api_key,
-      app_identifier: "com.spencerhill.fullbatteryalert",
+      app_identifier: "com.spencerhill.batterybeacon",
       platform: "macos",
       developer_id: false,
       output_path: "fastlane/profiles"
     )
-    profile_name = lane_context[SharedValues::SIGH_NAME] || ENV["sigh_com.spencerhill.fullbatteryalert_macos"]
+    profile_name = lane_context[SharedValues::SIGH_NAME] || ENV["sigh_com.spencerhill.batterybeacon_macos"]
     build_mac_app(
-      project: "FullBatteryAlert.xcodeproj",
-      scheme: "FullBatteryAlert",
+      project: "BatteryBeacon.xcodeproj",
+      scheme: "BatteryBeacon",
       configuration: "Release",
       export_method: "app-store",
       export_options: {
         provisioningProfiles: {
-          "com.spencerhill.fullbatteryalert" => profile_name
+          "com.spencerhill.batterybeacon" => profile_name
         }
       },
       output_directory: "build/fastlane",
-      output_name: "Battery Charged Notification"
+      output_name: "Battery Beacon"
     )
     upload_to_testflight(
       api_key: api_key,
-      pkg: "build/fastlane/Battery Charged Notification.pkg",
+      pkg: "build/fastlane/Battery Beacon.pkg",
       skip_waiting_for_build_processing: true
     )
   end
@@ -764,7 +764,7 @@ platform :mac do
     require 'net/http'
     token = Spaceship::ConnectAPI::Token.create(key_id: "XG3FW9LT9Q", issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d", filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8"))
     Spaceship::ConnectAPI.token = token
-    app = Spaceship::ConnectAPI::App.find("com.spencerhill.fullbatteryalert")
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
     v = app.get_edit_app_store_version(platform: "MAC_OS") || app.get_latest_app_store_version(platform: "MAC_OS")
     UI.message("version=#{v.version_string} state=#{v.app_store_state}")
     locs = Spaceship::ConnectAPI.get_app_store_version_localizations(app_store_version_id: v.id).to_models
@@ -814,7 +814,7 @@ platform :mac do
     require 'spaceship'
     token = Spaceship::ConnectAPI::Token.create(key_id: "XG3FW9LT9Q", issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d", filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8"))
     Spaceship::ConnectAPI.token = token
-    app = Spaceship::ConnectAPI::App.find("com.spencerhill.fullbatteryalert")
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
     builds = Spaceship::ConnectAPI::Build.all(app_id: app.id, sort: "-uploadedDate", limit: 8)
     builds.each { |b| UI.message("  #{b.app_version}(#{b.version}) state=#{b.processing_state} expired=#{b.expired} id=#{b.id}") }
   end
@@ -824,7 +824,7 @@ platform :mac do
     require 'spaceship'
     token = Spaceship::ConnectAPI::Token.create(key_id: "XG3FW9LT9Q", issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d", filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8"))
     Spaceship::ConnectAPI.token = token
-    app = Spaceship::ConnectAPI::App.find("com.spencerhill.fullbatteryalert")
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
     version = app.get_edit_app_store_version(platform: "MAC_OS")
     UI.user_error!("No editable version") unless version
     UI.message("Version #{version.version_string} state=#{version.app_store_state}")
@@ -851,7 +851,7 @@ platform :mac do
     require 'spaceship'
     token = Spaceship::ConnectAPI::Token.create(key_id: "XG3FW9LT9Q", issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d", filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8"))
     Spaceship::ConnectAPI.token = token
-    app = Spaceship::ConnectAPI::App.find("com.spencerhill.fullbatteryalert")
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
     all = Spaceship::ConnectAPI.get_app_store_versions(app_id: app.id, filter: { platform: "MAC_OS" }).to_models
     all.each { |v| UI.message("  #{v.version_string} state=#{v.app_store_state} id=#{v.id}") }
   end
@@ -864,7 +864,7 @@ platform :mac do
     token = Spaceship::ConnectAPI::Token.create(key_id: "XG3FW9LT9Q", issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d", filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8"))
     Spaceship::ConnectAPI.token = token
 
-    app = Spaceship::ConnectAPI::App.find("com.spencerhill.fullbatteryalert")
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
     all = Spaceship::ConnectAPI.get_app_store_versions(app_id: app.id, filter: { platform: "MAC_OS", versionString: "1.0.3" }).to_models
     if (existing = all.find { |v| v.version_string == "1.0.3" })
       version = existing
@@ -882,10 +882,10 @@ platform :mac do
     locs = Spaceship::ConnectAPI.get_app_store_version_localizations(app_store_version_id: version.id).to_models
     en = locs.find { |l| l.locale == "en-US" }
     Spaceship::ConnectAPI.patch_app_store_version_localization(app_store_version_localization_id: en.id, attributes: {
-      description: "Battery Charged Notification is a tiny menu bar utility that notifies you the moment your Mac's battery reaches the percentage you choose — so you can unplug at 95%, 100%, or any threshold you set, and never overcharge.\n\nFeatures:\n• Lives in the menu bar; shows current battery % and a charging bolt.\n• Configurable alert thresholds with sliders (default 95% and 100%).\n• Native macOS notifications fire near the battery icon at each threshold while plugged in.\n• Optional alert sound.\n• Thresholds reset automatically when you unplug — one alert per threshold per charge cycle.\n• Built with SwiftUI; respects your system theme, including Liquid Glass on macOS 26.",
+      description: "Battery Beacon is a tiny menu bar utility that notifies you the moment your Mac's battery reaches the percentage you choose — so you can unplug at 95%, 100%, or any threshold you set, and never overcharge.\n\nFeatures:\n• Lives in the menu bar; shows current battery % and a charging bolt.\n• Configurable alert thresholds with sliders (default 95% and 100%).\n• Native macOS notifications fire near the battery icon at each threshold while plugged in.\n• Optional alert sound.\n• Thresholds reset automatically when you unplug — one alert per threshold per charge cycle.\n• Built with SwiftUI; respects your system theme, including Liquid Glass on macOS 26.",
       keywords: "battery,alert,charge,menu bar,notification,utility,laptop,macbook",
-      supportUrl: "https://github.com/s3w47m88/battery-charged-notification",
-      marketingUrl: "https://github.com/s3w47m88/battery-charged-notification",
+      supportUrl: "https://github.com/s3w47m88/battery-beacon",
+      marketingUrl: "https://github.com/s3w47m88/battery-beacon",
       promotionalText: "Never overcharge your Mac again.",
       whatsNew: "Refreshed App Store screenshots."
     }) rescue UI.message("loc patch: #{$!.message[0..300]}")
