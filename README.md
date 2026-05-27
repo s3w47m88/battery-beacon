@@ -1,4 +1,4 @@
-# MacOS Fully Battery Alert
+# Battery Beacon
 
 A tiny native macOS menu bar app that notifies you when your battery hits configurable thresholds (default: **95%** and **100%**). Built with SwiftUI — uses your system theme automatically, including Liquid Glass on macOS 26 (Tahoe).
 
@@ -20,14 +20,14 @@ A tiny native macOS menu bar app that notifies you when your battery hits config
 
 ```bash
 ./build.sh
-open "build/MacOS Fully Battery Alert.app"
+open "build/Battery Beacon.app"
 ```
 
 Or move the `.app` to `/Applications`:
 
 ```bash
-cp -R "build/MacOS Fully Battery Alert.app" /Applications/
-open "/Applications/MacOS Fully Battery Alert.app"
+cp -R "build/Battery Beacon.app" /Applications/
+open "/Applications/Battery Beacon.app"
 ```
 
 On first launch, approve the notification permission prompt. If macOS Gatekeeper blocks the unsigned ad-hoc build, right-click the app → **Open**.
@@ -42,7 +42,7 @@ Click the menu bar item to:
 - Toggle alert sound.
 - Quit the app.
 
-Settings are stored in `UserDefaults` under domain `com.spencerhill.fullbatteryalert`.
+Settings are stored in `UserDefaults` under domain `com.spencerhill.batterybeacon`.
 
 ## How it works
 
