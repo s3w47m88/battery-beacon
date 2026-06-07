@@ -7,8 +7,8 @@ options:
 settings:
   base:
     DEVELOPMENT_TEAM: VP38993WK6
-    MARKETING_VERSION: "1.0.3"
-    CURRENT_PROJECT_VERSION: "11"
+    MARKETING_VERSION: "1.0.4"
+    CURRENT_PROJECT_VERSION: "12"
     SWIFT_VERSION: "5.9"
     CODE_SIGN_STYLE: Manual
     CODE_SIGN_IDENTITY: "Apple Distribution"
@@ -45,6 +45,8 @@ targets:
       path: Sources/BatteryBeacon/BatteryBeacon.entitlements
       properties:
         com.apple.security.app-sandbox: true
+        # Outbound HTTPS for Umami analytics (analytics.theportlandcompany.com).
+        com.apple.security.network.client: true
         # App Group disabled — see widget dependency comment above.
         # com.apple.security.application-groups:
         #   - group.com.spencerhill.batterybeacon

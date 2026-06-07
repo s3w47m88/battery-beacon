@@ -36,6 +36,10 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(peripheralCriticalThreshold, forKey: "peripheralCriticalThreshold") }
     }
 
+    @Published var analyticsEnabled: Bool {
+        didSet { defaults.set(analyticsEnabled, forKey: "analyticsEnabled") }
+    }
+
     init() {
         if let arr = UserDefaults.standard.array(forKey: "thresholds") as? [Int], !arr.isEmpty {
             self.thresholds = arr
@@ -48,6 +52,7 @@ final class AppSettings: ObservableObject {
         self.peripheralAlertsEnabled = (UserDefaults.standard.object(forKey: "peripheralAlertsEnabled") as? Bool) ?? true
         self.peripheralLowThreshold = (UserDefaults.standard.object(forKey: "peripheralLowThreshold") as? Int) ?? 20
         self.peripheralCriticalThreshold = (UserDefaults.standard.object(forKey: "peripheralCriticalThreshold") as? Int) ?? 10
+        self.analyticsEnabled = (UserDefaults.standard.object(forKey: "analyticsEnabled") as? Bool) ?? true
         applyOpenOnStartup()
     }
 
