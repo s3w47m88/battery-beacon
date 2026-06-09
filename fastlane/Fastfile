@@ -10,6 +10,242 @@ API_KEY = lambda do
 end
 
 platform :mac do
+  lane :wait_app do
+    require 'spaceship'
+    token = Spaceship::ConnectAPI::Token.create(key_id: "XG3FW9LT9Q", issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d", filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8"))
+    Spaceship::ConnectAPI.token = token
+    deadline = Time.now + (40 * 60)
+    loop do
+      app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon") rescue nil
+      if app
+        UI.success("WAITAPP FOUND id=#{app.id} name=#{app.name}")
+        break
+      end
+      if Time.now > deadline
+        UI.user_error!("WAITAPP TIMEOUT: app record not created within window")
+      end
+      UI.message("WAITAPP still waiting for app record…")
+      sleep 20
+    end
+  end
+
+  lane :wait_build do
+    require 'spaceship'
+    token = Spaceship::ConnectAPI::Token.create(key_id: "XG3FW9LT9Q", issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d", filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8"))
+    Spaceship::ConnectAPI.token = token
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
+    deadline = Time.now + (40 * 60)
+    loop do
+      build = Spaceship::ConnectAPI::Build.all(app_id: app.id, sort: "-uploadedDate", limit: 1).first
+      if build
+        UI.message("WAITBUILD #{build.version}: #{build.processing_state}")
+        if build.processing_state == "VALID"
+          UI.success("WAITBUILD READY #{build.version} (build #{build.id})")
+          break
+        end
+      else
+        UI.message("WAITBUILD no build visible yet…")
+      end
+      UI.user_error!("WAITBUILD TIMEOUT") if Time.now > deadline
+      sleep 30
+    end
+  end
+
+  lane :bb_diag do
+    require 'spaceship'
+    token = Spaceship::ConnectAPI::Token.create(key_id: "XG3FW9LT9Q", issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d", filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8"))
+    Spaceship::ConnectAPI.token = token
+    c = Spaceship::ConnectAPI.tunes_request_client
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
+    UI.message("DIAG app=#{app.id}")
+    v = app.get_edit_app_store_version(platform: "MAC_OS")
+    UI.message("DIAG version=#{v.version_string} state=#{v.app_store_state}")
+    loc = Spaceship::ConnectAPI.get_app_store_version_localizations(app_store_version_id: v.id).to_models.find { |l| l.locale == "en-US" }
+    UI.message("DIAG loc desc?=#{!loc.description.to_s.empty?} kw?=#{!loc.keywords.to_s.empty?} support?=#{!loc.support_url.to_s.empty?} whatsNew=#{loc.whats_new.inspect[0..40]}")
+    begin
+      ps = c.get("v1/apps/#{app.id}/appPriceSchedule")
+      UI.message("DIAG priceSchedule=#{ps.body.inspect[0..200]}")
+    rescue => e
+      UI.message("DIAG priceSchedule ERR #{e.message[0..160]}")
+    end
+    begin
+      pub = c.get("v1/apps/#{app.id}/dataUsagesPublishState")
+      UI.message("DIAG privacyPublish=#{pub.body.inspect[0..200]}")
+    rescue => e
+      UI.message("DIAG privacyPublish ERR #{e.message[0..160]}")
+    end
+  end
+
+  lane :bb_pricing do
+    require 'spaceship'
+    token = Spaceship::ConnectAPI::Token.create(key_id: "XG3FW9LT9Q", issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d", filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8"))
+    Spaceship::ConnectAPI.token = token
+    c = Spaceship::ConnectAPI.tunes_request_client
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
+
+    # Find the free (0.00) price point for the base territory USA.
+    free_pp = nil
+    %w[v1 v2].each do |ver|
+      begin
+        resp = c.get("#{ver}/apps/#{app.id}/appPricePoints", { "filter[territory]" => "USA", "limit" => 200 })
+        pts = resp.body["data"] || []
+        free_pp = pts.find { |p| ["0", "0.0", "0.00"].include?(p.dig("attributes", "customerPrice").to_s) }
+        if free_pp
+          UI.message("BBPRICE free price point (#{ver})=#{free_pp["id"]}")
+          break
+        else
+          UI.message("BBPRICE #{ver}: #{pts.size} points, no free found; sample=#{pts.first&.dig("attributes")&.inspect&.slice(0,120)}")
+        end
+      rescue => e
+        UI.message("BBPRICE #{ver} ERR #{e.message[0..160]}")
+      end
+    end
+    UI.user_error!("No free price point found") unless free_pp
+
+    body = {
+      data: {
+        type: "appPriceSchedules",
+        relationships: {
+          app: { data: { type: "apps", id: app.id } },
+          baseTerritory: { data: { type: "territories", id: "USA" } },
+          manualPrices: { data: [ { type: "appPrices", id: "${price1}" } ] }
+        }
+      },
+      included: [
+        {
+          type: "appPrices",
+          id: "${price1}",
+          attributes: {},
+          relationships: {
+            appPricePoint: { data: { type: "appPricePoints", id: free_pp["id"] } }
+          }
+        }
+      ]
+    }
+    resp = c.post("v1/appPriceSchedules", body)
+    UI.success("BBPRICE schedule set: #{resp.body.dig("data", "id")}")
+  end
+
+  lane :bb_submit do
+    require 'spaceship'
+    token = Spaceship::ConnectAPI::Token.create(key_id: "XG3FW9LT9Q", issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d", filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8"))
+    Spaceship::ConnectAPI.token = token
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
+    version = app.get_edit_app_store_version(platform: "MAC_OS")
+    en_v = Spaceship::ConnectAPI.get_app_store_version_localizations(app_store_version_id: version.id).to_models.find { |l| l.locale == "en-US" }
+
+    existing = Spaceship::ConnectAPI.get_review_submissions(app_id: app.id, filter: { state: "READY_FOR_REVIEW,WAITING_FOR_REVIEW,IN_REVIEW" }).to_models rescue []
+    sub_id = existing.first&.id
+    unless sub_id
+      sub_resp = Spaceship::ConnectAPI.post_review_submission(app_id: app.id, platform: "MAC_OS")
+      sub_id = sub_resp.to_models.first.id
+    end
+    items = Spaceship::ConnectAPI.get_review_submission_items(review_submission_id: sub_id).to_models rescue []
+    if items.empty?
+      Spaceship::ConnectAPI.post_review_submission_item(review_submission_id: sub_id, app_store_version_id: version.id)
+    end
+    # Dump screenshot states (correct relationship traversal).
+    sets = Spaceship::ConnectAPI.get_app_screenshot_sets(app_store_version_localization_id: en_v.id, includes: "appScreenshots").to_models rescue []
+    sets.each do |s|
+      shots = s.app_screenshots || []
+      UI.message("BBSUBMIT set #{s.screenshot_display_type}: #{shots.map { |sh| sh.asset_delivery_state&.dig('state') }.inspect}")
+    end
+    begin
+      Spaceship::ConnectAPI.patch_review_submission(review_submission_id: sub_id, attributes: { submitted: true })
+      UI.success("BBSUBMIT submitted sub=#{sub_id}")
+    rescue Spaceship::UnexpectedResponse => e
+      UI.error("BBSUBMIT detail: #{e.preferred_error_info.inspect}") if e.respond_to?(:preferred_error_info)
+      UI.error("BBSUBMIT full: #{e.to_s}")
+      raise
+    end
+    v2 = app.get_edit_app_store_version(platform: "MAC_OS") || app.get_latest_app_store_version(platform: "MAC_OS")
+    UI.success("BBSUBMIT version #{v2.version_string} state=#{v2.app_store_state}")
+  end
+
+  lane :bb_wait_privacy do
+    require 'spaceship'
+    token = Spaceship::ConnectAPI::Token.create(key_id: "XG3FW9LT9Q", issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d", filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8"))
+    Spaceship::ConnectAPI.token = token
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
+    deadline = Time.now + (40 * 60)
+    loop do
+      begin
+        st = Spaceship::ConnectAPI::AppDataUsagesPublishState.get(app_id: app.id)
+        UI.message("BBWAITPRIV published=#{st&.published.inspect}")
+        if st&.published
+          UI.success("BBWAITPRIV PUBLISHED")
+          break
+        end
+      rescue => e
+        UI.message("BBWAITPRIV read err #{e.message[0..120]}")
+      end
+      UI.user_error!("BBWAITPRIV TIMEOUT") if Time.now > deadline
+      sleep 20
+    end
+  end
+
+  lane :bb_privacy do
+    require 'spaceship'
+    token = Spaceship::ConnectAPI::Token.create(key_id: "XG3FW9LT9Q", issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d", filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8"))
+    Spaceship::ConnectAPI.token = token
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
+    # Clear any existing data usages.
+    (Spaceship::ConnectAPI.get_app_data_usages(app_id: app.id).to_models rescue []).each do |u|
+      Spaceship::ConnectAPI.delete_app_data_usage(app_data_usage_id: u.id) rescue nil
+    end
+    # Declare "Data Not Collected".
+    Spaceship::ConnectAPI.post_app_data_usage(
+      app_id: app.id,
+      app_data_usage_protection_id: Spaceship::ConnectAPI::AppDataUsageDataProtection::ID::DATA_NOT_COLLECTED
+    )
+    UI.success("BBPRIV declared DATA_NOT_COLLECTED")
+    # Publish the privacy section.
+    state = Spaceship::ConnectAPI::AppDataUsagesPublishState.get(app_id: app.id)
+    UI.message("BBPRIV publish state id=#{state.id} published=#{state.published}")
+    Spaceship::ConnectAPI.patch_app_data_usages_publish_state(app_data_usages_publish_state_id: state.id, published: true)
+    UI.success("BBPRIV published")
+  end
+
+  lane :bb_diag2 do
+    require 'spaceship'
+    token = Spaceship::ConnectAPI::Token.create(key_id: "XG3FW9LT9Q", issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d", filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8"))
+    Spaceship::ConnectAPI.token = token
+    c = Spaceship::ConnectAPI.tunes_request_client
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
+    v = app.get_edit_app_store_version(platform: "MAC_OS")
+    UI.message("D2 version=#{v.version_string} state=#{v.app_store_state} id=#{v.id}")
+    loc = Spaceship::ConnectAPI.get_app_store_version_localizations(app_store_version_id: v.id).to_models.find { |l| l.locale == "en-US" }
+    # screenshots via raw GET
+    ss = c.get("v1/appStoreVersionLocalizations/#{loc.id}/appScreenshotSets", { "include" => "appScreenshots" })
+    sets = ss.body["data"] || []
+    incl = ss.body["included"] || []
+    UI.message("D2 screenshotSets=#{sets.size} screenshots=#{incl.size}")
+    incl.each { |s| UI.message("D2 shot #{s["id"]} state=#{s.dig("attributes","assetDeliveryState","state")}") }
+    # pricing
+    begin
+      ps = c.get("v1/appPriceSchedules/#{app.id}/manualPrices", { "include" => "appPricePoint", "limit" => 5 })
+      UI.message("D2 manualPrices=#{(ps.body["data"]||[]).size}")
+    rescue => e
+      UI.message("D2 manualPrices ERR #{e.message[0..160]}")
+    end
+    # privacy publish state
+    ["v1/apps/#{app.id}/relationships/dataUsagesPublishState", "v2/apps/#{app.id}/appDataUsagesPublishState"].each do |p|
+      begin
+        r = c.get(p)
+        UI.message("D2 #{p} => #{r.body.inspect[0..200]}")
+      rescue => e
+        UI.message("D2 #{p} ERR #{e.message[0..120]}")
+      end
+    end
+    # data usages count
+    begin
+      du = Spaceship::ConnectAPI.get_app_data_usages(app_id: app.id).to_models
+      UI.message("D2 dataUsages=#{du.size}")
+    rescue => e
+      UI.message("D2 dataUsages ERR #{e.message[0..120]}")
+    end
+  end
+
   desc "Create app record in App Store Connect via Spaceship"
   lane :create_app do
     require 'spaceship'
@@ -118,14 +354,20 @@ platform :mac do
     # 5) Version localization — description, keywords, support URL, what's new
     locs = Spaceship::ConnectAPI.get_app_store_version_localizations(app_store_version_id: version.id).to_models
     en_v = locs.find { |l| l.locale == "en-US" }
+    # Required localization fields — patched on their own so the whole request
+    # is not rejected when an optional field (whatsNew) is disallowed on a
+    # first version of a brand-new app.
     Spaceship::ConnectAPI.patch_app_store_version_localization(app_store_version_localization_id: en_v.id, attributes: {
       description: "Battery Beacon is a tiny menu bar utility that notifies you the moment your Mac's battery reaches the percentage you choose — so you can unplug at 95%, 100%, or any threshold you set, and never overcharge.\n\nFeatures:\n• Lives in the menu bar; shows current battery % and a charging bolt.\n• Configurable alert thresholds with sliders (default 95% and 100%).\n• Native macOS notifications fire near the battery icon at each threshold while plugged in.\n• Optional alert sound.\n• Thresholds reset automatically when you unplug — one alert per threshold per charge cycle.\n• Built with SwiftUI; respects your system theme, including Liquid Glass on macOS 26.",
       keywords: "battery,alert,charge,menu bar,notification,utility,laptop,macbook",
       supportUrl: "https://github.com/s3w47m88/battery-beacon",
       marketingUrl: "https://github.com/s3w47m88/battery-beacon",
-      promotionalText: "Never overcharge your Mac again.",
-      whatsNew: "Refreshed App Store screenshots to better reflect the actual app."
+      promotionalText: "Never overcharge your Mac again."
     }) rescue UI.message("version loc: #{$!.message[0..200]}")
+    # whatsNew is only valid on updates (not a first version); attempt separately.
+    Spaceship::ConnectAPI.patch_app_store_version_localization(app_store_version_localization_id: en_v.id, attributes: {
+      whatsNew: "Refreshed App Store screenshots to better reflect the actual app."
+    }) rescue UI.message("whatsNew (expected to fail on first version): #{$!.message[0..120]}")
     UI.success("Version localization updated")
 
     # 6) Version attributes — copyright, release type
@@ -734,6 +976,7 @@ platform :mac do
       app_identifier: "com.spencerhill.batterybeacon",
       platform: "macos",
       developer_id: false,
+      provisioning_name: "com.spencerhill.batterybeacon AppStore",
       output_path: "fastlane/profiles"
     )
     profile_name = lane_context[SharedValues::SIGH_NAME] || ENV["sigh_com.spencerhill.batterybeacon_macos"]
@@ -918,4 +1161,5 @@ platform :mac do
     end
     UI.success("Staged 1.0.2 with #{files.size} screenshot(s) — no build attached, not submitted.")
   end
+
 end
