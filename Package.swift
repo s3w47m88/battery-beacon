@@ -2,12 +2,12 @@
 import PackageDescription
 
 let package = Package(
-    name: "FullBatteryAlert",
+    name: "BatteryBeacon",
     platforms: [.macOS(.v14)],
     targets: [
         .executableTarget(
-            name: "FullBatteryAlert",
-            path: "Sources/FullBatteryAlert"
+            name: "BatteryBeacon",
+            path: "Sources/BatteryBeacon"
         )
     ]
 )

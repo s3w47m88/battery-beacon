@@ -47,7 +47,7 @@ public struct WidgetSnapshot: Codable, Equatable {
 }
 
 public enum WidgetSnapshotStore {
-    public static let appGroupID = "group.com.spencerhill.fullbatteryalert"
+    public static let appGroupID = "group.com.spencerhill.batterybeacon"
     public static let key = "WidgetSnapshot.v1"
 
     public static var defaults: UserDefaults? {

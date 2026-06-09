@@ -2,7 +2,7 @@
 
 **Date:** 2026-05-12
 **Status:** Approved (pending user review of this written spec)
-**Component:** MacOS Fully Battery Alert menu-bar app
+**Component:** Battery Beacon menu-bar app
 
 ## Problem
 
@@ -23,7 +23,7 @@ Replace the static placeholder with a live list of the top energy-using apps. Cl
 
 Three new files plus targeted edits to two existing files.
 
-### New: `Sources/FullBatteryAlert/EnergyMonitor.swift`
+### New: `Sources/BatteryBeacon/EnergyMonitor.swift`
 
 `@MainActor final class EnergyMonitor: ObservableObject`.
 
@@ -51,7 +51,7 @@ struct AppEnergy: Identifiable {
 }
 ```
 
-### New: `Sources/FullBatteryAlert/EnergyListView.swift`
+### New: `Sources/BatteryBeacon/EnergyListView.swift`
 
 SwiftUI view. Inputs: `@ObservedObject var monitor: EnergyMonitor`, `onSelect: (AppEnergy) -> Void`.
 
@@ -66,7 +66,7 @@ Layout:
   - Trailing chevron `chevron.right` to signal tappability.
 - Whole row is a `Button` styled `.plain`; on tap, calls `onSelect(app)`.
 
-### New: `Sources/FullBatteryAlert/AppDrillIn.swift`
+### New: `Sources/BatteryBeacon/AppDrillIn.swift`
 
 Single entry point:
 
@@ -97,13 +97,13 @@ Implementation notes:
 - **Hint fallback:** if Accessibility isn't granted, activate the target app and show a transient toast inside our popover: `"Press ⇧⎋ in Chrome to see per-tab energy"`. This means the feature is useful even before the user grants the permission.
 - Activating the target app uses `NSRunningApplication.activate(options: .activateIgnoringOtherApps)`.
 
-### Edited: `Sources/FullBatteryAlert/SettingsView.swift`
+### Edited: `Sources/BatteryBeacon/SettingsView.swift`
 
 - Inject `@ObservedObject var energy: EnergyMonitor` alongside the existing `battery` and `settings`.
 - Replace the placeholder `Text("No Apps Using Significant Energy")` block (lines 49–51) with `EnergyListView(monitor: energy, onSelect: AppDrillIn.openResourceMonitor)`.
 - No other changes — the rest of the view (thresholds, sound toggle, quit) stays put.
 
-### Edited: `Sources/FullBatteryAlert/App.swift`
+### Edited: `Sources/BatteryBeacon/App.swift`
 
 - `AppDelegate` owns a new `private let energy = EnergyMonitor()`.
 - Pass `energy` into `SettingsView`'s constructor (alongside `settings` and `battery`).
@@ -178,13 +178,13 @@ Manual scenarios (the project has no test suite today; we won't add one for this
 ## Files changed
 
 **New:**
-- `Sources/FullBatteryAlert/EnergyMonitor.swift`
-- `Sources/FullBatteryAlert/EnergyListView.swift`
-- `Sources/FullBatteryAlert/AppDrillIn.swift`
+- `Sources/BatteryBeacon/EnergyMonitor.swift`
+- `Sources/BatteryBeacon/EnergyListView.swift`
+- `Sources/BatteryBeacon/AppDrillIn.swift`
 
 **Edited:**
-- `Sources/FullBatteryAlert/SettingsView.swift` (replace placeholder, inject monitor)
-- `Sources/FullBatteryAlert/App.swift` (own monitor, wire start/stop to popover)
+- `Sources/BatteryBeacon/SettingsView.swift` (replace placeholder, inject monitor)
+- `Sources/BatteryBeacon/App.swift` (own monitor, wire start/stop to popover)
 
 No changes to `project.yml`, entitlements, or build scripts. No new dependencies.
 

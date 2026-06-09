@@ -1,13 +1,13 @@
 #!/bin/bash
 set -euo pipefail
 
-APP_NAME="Battery Charged Notification"
-BUNDLE_ID="com.spencerhill.fullbatteryalert"
+APP_NAME="Battery Beacon"
+BUNDLE_ID="com.spencerhill.batterybeacon"
 BUILD_DIR="build"
 APP_DIR="$BUILD_DIR/$APP_NAME.app"
 CONTENTS="$APP_DIR/Contents"
 MACOS_DIR="$CONTENTS/MacOS"
-BIN_NAME="FullBatteryAlert"
+BIN_NAME="BatteryBeacon"
 
 rm -rf "$BUILD_DIR"
 mkdir -p "$MACOS_DIR"
@@ -17,7 +17,7 @@ swiftc -O \
   -target arm64-apple-macos14.0 \
   -framework AppKit -framework SwiftUI -framework UserNotifications -framework IOKit -framework Combine \
   -o "$MACOS_DIR/$BIN_NAME" \
-  Sources/FullBatteryAlert/*.swift Sources/FullBatteryAlertShared/*.swift
+  Sources/BatteryBeacon/*.swift Sources/BatteryBeaconShared/*.swift
 
 cat > "$CONTENTS/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>

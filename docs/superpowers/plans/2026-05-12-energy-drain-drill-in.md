@@ -18,18 +18,18 @@
 
 | File | Status | Responsibility |
 |------|--------|----------------|
-| `Sources/FullBatteryAlert/EnergyMonitor.swift` | new | `AppEnergy` struct + `EnergyMonitor` observable object that polls `top` and publishes top apps |
-| `Sources/FullBatteryAlert/EnergyListView.swift` | new | SwiftUI list of energy-using apps with tap-to-drill-in rows |
-| `Sources/FullBatteryAlert/AppDrillIn.swift` | new | `openResourceMonitor(for:)` — routes to Chromium task manager / Safari Activity / Firefox `about:performance` / Activity Monitor |
-| `Sources/FullBatteryAlert/SettingsView.swift` | edit | replace placeholder `Text` block (lines 49–51) with `EnergyListView`; receive `energy` parameter; render hint toast |
-| `Sources/FullBatteryAlert/App.swift` | edit | own `EnergyMonitor`; call `start()`/`stop()` from `toggleSettings(_:)` |
+| `Sources/BatteryBeacon/EnergyMonitor.swift` | new | `AppEnergy` struct + `EnergyMonitor` observable object that polls `top` and publishes top apps |
+| `Sources/BatteryBeacon/EnergyListView.swift` | new | SwiftUI list of energy-using apps with tap-to-drill-in rows |
+| `Sources/BatteryBeacon/AppDrillIn.swift` | new | `openResourceMonitor(for:)` — routes to Chromium task manager / Safari Activity / Firefox `about:performance` / Activity Monitor |
+| `Sources/BatteryBeacon/SettingsView.swift` | edit | replace placeholder `Text` block (lines 49–51) with `EnergyListView`; receive `energy` parameter; render hint toast |
+| `Sources/BatteryBeacon/App.swift` | edit | own `EnergyMonitor`; call `start()`/`stop()` from `toggleSettings(_:)` |
 
 ---
 
 ## Task 1: AppEnergy model + top output parser
 
 **Files:**
-- Create: `Sources/FullBatteryAlert/EnergyMonitor.swift` (parser + model only — no class yet)
+- Create: `Sources/BatteryBeacon/EnergyMonitor.swift` (parser + model only — no class yet)
 
 - [ ] **Step 1: Create the file with model and parser**
 
@@ -91,7 +91,7 @@ enum EnergyParser {
 - [ ] **Step 2: Verify the file compiles**
 
 Run: `./build.sh`
-Expected: `Built: build/MacOS Fully Battery Alert.app` with no Swift errors. The new file is included by the `Sources/FullBatteryAlert/*.swift` glob.
+Expected: `Built: build/Battery Beacon.app` with no Swift errors. The new file is included by the `Sources/BatteryBeacon/*.swift` glob.
 
 - [ ] **Step 3: Sanity-check the parser against real `top` output**
 
@@ -104,7 +104,7 @@ Expected: a header section, then a row starting with `PID    COMMAND      POWER`
 - [ ] **Step 4: Commit**
 
 ```bash
-git add Sources/FullBatteryAlert/EnergyMonitor.swift
+git add Sources/BatteryBeacon/EnergyMonitor.swift
 git commit -m "Add AppEnergy model and top output parser"
 ```
 
@@ -113,7 +113,7 @@ git commit -m "Add AppEnergy model and top output parser"
 ## Task 2: EnergyMonitor class with polling lifecycle
 
 **Files:**
-- Modify: `Sources/FullBatteryAlert/EnergyMonitor.swift` — append the `EnergyMonitor` class below the parser
+- Modify: `Sources/BatteryBeacon/EnergyMonitor.swift` — append the `EnergyMonitor` class below the parser
 
 - [ ] **Step 1: Add imports and helper for running `top`**
 
@@ -225,7 +225,7 @@ Expected: clean build. If you see a concurrency warning about `Timer` capturing 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add Sources/FullBatteryAlert/EnergyMonitor.swift
+git add Sources/BatteryBeacon/EnergyMonitor.swift
 git commit -m "Add EnergyMonitor with timer-based polling and pid grouping"
 ```
 
@@ -234,7 +234,7 @@ git commit -m "Add EnergyMonitor with timer-based polling and pid grouping"
 ## Task 3: EnergyListView
 
 **Files:**
-- Create: `Sources/FullBatteryAlert/EnergyListView.swift`
+- Create: `Sources/BatteryBeacon/EnergyListView.swift`
 
 - [ ] **Step 1: Create the SwiftUI view**
 
@@ -319,7 +319,7 @@ Expected: clean build. The view isn't used anywhere yet — that's fine; Swift w
 - [ ] **Step 3: Commit**
 
 ```bash
-git add Sources/FullBatteryAlert/EnergyListView.swift
+git add Sources/BatteryBeacon/EnergyListView.swift
 git commit -m "Add EnergyListView for top energy users with tap-to-drill rows"
 ```
 
@@ -330,7 +330,7 @@ git commit -m "Add EnergyListView for top energy users with tap-to-drill rows"
 This task implements the safe default path (no permissions required). Browser-specific paths come in Task 6.
 
 **Files:**
-- Create: `Sources/FullBatteryAlert/AppDrillIn.swift`
+- Create: `Sources/BatteryBeacon/AppDrillIn.swift`
 
 - [ ] **Step 1: Create the file with the result enum and the fallback implementation**
 
@@ -372,7 +372,7 @@ Expected: clean build. You may see a deprecation warning on `launchApplication` 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add Sources/FullBatteryAlert/AppDrillIn.swift
+git add Sources/BatteryBeacon/AppDrillIn.swift
 git commit -m "Add AppDrillIn with Activity Monitor fallback path"
 ```
 
@@ -383,8 +383,8 @@ git commit -m "Add AppDrillIn with Activity Monitor fallback path"
 This is the integration task — after it lands, the app actually shows the energy list and clicking opens Activity Monitor.
 
 **Files:**
-- Modify: `Sources/FullBatteryAlert/SettingsView.swift`
-- Modify: `Sources/FullBatteryAlert/App.swift`
+- Modify: `Sources/BatteryBeacon/SettingsView.swift`
+- Modify: `Sources/BatteryBeacon/App.swift`
 
 - [ ] **Step 1: Update `SettingsView` to accept the monitor and render the list**
 
@@ -485,7 +485,7 @@ Expected: clean build.
 
 Run:
 ```bash
-open "build/MacOS Fully Battery Alert.app"
+open "build/Battery Beacon.app"
 ```
 Then:
 1. Click the menu-bar battery icon to open the popover.
@@ -498,7 +498,7 @@ If with no busy apps you see only "No Apps Using Significant Energy", that's cor
 - [ ] **Step 5: Commit**
 
 ```bash
-git add Sources/FullBatteryAlert/SettingsView.swift Sources/FullBatteryAlert/App.swift
+git add Sources/BatteryBeacon/SettingsView.swift Sources/BatteryBeacon/App.swift
 git commit -m "Wire EnergyMonitor + EnergyListView into settings popover"
 ```
 
@@ -507,7 +507,7 @@ git commit -m "Wire EnergyMonitor + EnergyListView into settings popover"
 ## Task 6: Browser-specific drill-in (Chromium / Safari / Firefox)
 
 **Files:**
-- Modify: `Sources/FullBatteryAlert/AppDrillIn.swift`
+- Modify: `Sources/BatteryBeacon/AppDrillIn.swift`
 
 - [ ] **Step 1: Replace `openResourceMonitor(for:)` with the bundle-ID router**
 
@@ -639,8 +639,8 @@ Expected: clean build.
 
 This is the first-run path — before granting Accessibility.
 
-1. If you've already granted Accessibility for the test build, open System Settings → Privacy & Security → Accessibility and toggle off `MacOS Fully Battery Alert` (or remove it).
-2. Quit and relaunch: `open "build/MacOS Fully Battery Alert.app"`.
+1. If you've already granted Accessibility for the test build, open System Settings → Privacy & Security → Accessibility and toggle off `Battery Beacon` (or remove it).
+2. Quit and relaunch: `open "build/Battery Beacon.app"`.
 3. Make Chrome busy (open a YouTube tab and start a video so it shows up in the list).
 4. Open the menu-bar popover and click the Chrome row.
 5. Expected: macOS shows the Accessibility prompt; the popover shows the hint message "Press ⇧⎋ in Google Chrome to see per-tab energy."; Chrome activates to the foreground.
@@ -656,7 +656,7 @@ This is the first-run path — before granting Accessibility.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add Sources/FullBatteryAlert/AppDrillIn.swift
+git add Sources/BatteryBeacon/AppDrillIn.swift
 git commit -m "Add browser-specific drill-in for Chromium, Safari, Firefox"
 ```
 
@@ -668,7 +668,7 @@ No code changes — this is the end-to-end check against the spec's `## Testing`
 
 - [ ] **Step 1: Run through all six scenarios from the spec**
 
-Build a clean app: `./build.sh && open "build/MacOS Fully Battery Alert.app"`
+Build a clean app: `./build.sh && open "build/Battery Beacon.app"`
 
 For each scenario, observe and check off:
 

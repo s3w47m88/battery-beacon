@@ -3,7 +3,7 @@ import AppKit
 import Combine
 
 @main
-struct FullBatteryAlertApp: App {
+struct BatteryBeaconApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     var body: some Scene {
         Settings { EmptyView() } // Required Scene; never shown (LSUIElement).
@@ -35,9 +35,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         setupPopovers()
         updateIcon()
 
-        // Re-render the icon when the percent-in-icon toggle changes.
+        // Analytics: respect the opt-out, retry anything queued offline, and
+        // record the launch.
+        UmamiAnalytics.shared.isEnabled = settings.analyticsEnabled
+        UmamiAnalytics.shared.flushPending()
+        let osv = ProcessInfo.processInfo.operatingSystemVersion
+        UmamiAnalytics.shared.track(
+            "app_launched", path: "/app/launch",
+            data: ["macos": "\(osv.majorVersion).\(osv.minorVersion).\(osv.patchVersion)"]
+        )
+
+        // Re-render the icon when the percent-in-icon toggle changes, and keep
+        // the analytics opt-out in sync with the live setting.
         settingsCancellable = settings.objectWillChange.sink { [weak self] _ in
-            DispatchQueue.main.async { self?.updateIcon() }
+            DispatchQueue.main.async {
+                self?.updateIcon()
+                UmamiAnalytics.shared.isEnabled = self?.settings.analyticsEnabled ?? true
+            }
         }
 
         battery.onChange = { [weak self] pct, charging, plugged in
@@ -48,6 +62,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 settings: self.settings,
                 onFire: { threshold in
                     self.presentAlertPopover(threshold: threshold, percentage: pct)
+                    UmamiAnalytics.shared.track(
+                        "alert_fired", path: "/app/alert",
+                        data: ["threshold": threshold, "charging": charging]
+                    )
                 }
             )
             // Piggyback peripheral refresh + alert eval on the system battery tick
@@ -65,6 +83,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             percentage: battery.percentage, isCharging: battery.isCharging, isPluggedIn: battery.isPluggedIn,
             settings: settings, onFire: { _ in }
         )
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        UmamiAnalytics.shared.track("app_quit", path: "/app/quit")
     }
 
     private func setupStatusItem() {

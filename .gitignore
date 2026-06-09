@@ -5,9 +5,11 @@ build/
 *.xcodeproj/
 *.xcworkspace/
 Package.resolved
-FullBatteryAlert.xcodeproj/
+BatteryBeacon.xcodeproj/
 fastlane/certs/
 fastlane/profiles/
 fastlane/report.xml
 fastlane/README.md
 .claude/scheduled_tasks.lock
+
+.claude/

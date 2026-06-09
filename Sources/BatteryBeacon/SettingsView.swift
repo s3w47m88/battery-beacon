@@ -252,6 +252,12 @@ struct SettingsView: View {
             Toggle("Show percentage inside the icon", isOn: $settings.showPercentageInIcon)
             Toggle("Open on startup", isOn: $settings.openOnStartup)
             Divider()
+            Toggle("Share anonymous usage analytics", isOn: $settings.analyticsEnabled)
+            Text("Sends anonymous app events (no names, emails, or personal data) to help improve Battery Beacon. Turn off anytime.")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+                .fixedSize(horizontal: false, vertical: true)
+            Divider()
             Button("Hide system battery indicator") {
                 SystemBatteryIndicator.hide()
             }
