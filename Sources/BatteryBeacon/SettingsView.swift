@@ -253,7 +253,7 @@ struct SettingsView: View {
             Toggle("Open on startup", isOn: $settings.openOnStartup)
             Divider()
             Toggle("Share anonymous usage analytics", isOn: $settings.analyticsEnabled)
-            Text("Sends anonymous app events (no names, emails, or personal data) to help improve Battery Beacon. Turn off anytime.")
+            Text("When on, anonymous app events (no names, emails, or personal data) are uploaded to the developer's server at analytics.theportlandcompany.com to help improve Battery Beacon. Off by default; turn off anytime.")
                 .font(.caption)
                 .foregroundStyle(.tertiary)
                 .fixedSize(horizontal: false, vertical: true)

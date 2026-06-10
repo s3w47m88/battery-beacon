@@ -35,22 +35,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         setupPopovers()
         updateIcon()
 
-        // Analytics: respect the opt-out, retry anything queued offline, and
-        // record the launch.
+        // Analytics is opt-in (guideline 5.1.2): nothing is uploaded until the
+        // user explicitly consents. Sync the current state, then — on first run
+        // only — ask for consent before any event is sent.
         UmamiAnalytics.shared.isEnabled = settings.analyticsEnabled
-        UmamiAnalytics.shared.flushPending()
-        let osv = ProcessInfo.processInfo.operatingSystemVersion
-        UmamiAnalytics.shared.track(
-            "app_launched", path: "/app/launch",
-            data: ["macos": "\(osv.majorVersion).\(osv.minorVersion).\(osv.patchVersion)"]
-        )
+        if !settings.analyticsConsentAsked {
+            requestAnalyticsConsent()
+        } else if settings.analyticsEnabled {
+            startAnalytics()
+        }
 
         // Re-render the icon when the percent-in-icon toggle changes, and keep
-        // the analytics opt-out in sync with the live setting.
+        // the analytics enabled-state in sync with the live setting.
         settingsCancellable = settings.objectWillChange.sink { [weak self] _ in
             DispatchQueue.main.async {
                 self?.updateIcon()
-                UmamiAnalytics.shared.isEnabled = self?.settings.analyticsEnabled ?? true
+                UmamiAnalytics.shared.isEnabled = self?.settings.analyticsEnabled ?? false
             }
         }
 
@@ -86,7 +86,44 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
-        UmamiAnalytics.shared.track("app_quit", path: "/app/quit")
+        if settings.analyticsEnabled {
+            UmamiAnalytics.shared.track("app_quit", path: "/app/quit")
+        }
+    }
+
+    /// First-run consent (guideline 5.1.2): clearly state that anonymous usage
+    /// data will be uploaded to our server, and only enable analytics if the
+    /// user agrees. Nothing is sent before this choice.
+    private func requestAnalyticsConsent() {
+        let alert = NSAlert()
+        alert.messageText = "Help improve Battery Beacon?"
+        alert.informativeText = """
+        Battery Beacon can send anonymous usage data (such as when an alert \
+        fires and your app/macOS version) to the developer's own server at \
+        analytics.theportlandcompany.com to help improve the app.
+
+        No names, emails, or personal information are collected, and the data \
+        is never used for advertising or tracking. You can change this anytime \
+        in Settings.
+        """
+        alert.addButton(withTitle: "Share Anonymous Data")
+        alert.addButton(withTitle: "No Thanks")
+        NSApp.activate(ignoringOtherApps: true)
+        let agreed = alert.runModal() == .alertFirstButtonReturn
+        settings.analyticsEnabled = agreed
+        settings.analyticsConsentAsked = true
+        UmamiAnalytics.shared.isEnabled = agreed
+        if agreed { startAnalytics() }
+    }
+
+    /// Begin sending analytics for this session — only ever called after consent.
+    private func startAnalytics() {
+        UmamiAnalytics.shared.flushPending()
+        let osv = ProcessInfo.processInfo.operatingSystemVersion
+        UmamiAnalytics.shared.track(
+            "app_launched", path: "/app/launch",
+            data: ["macos": "\(osv.majorVersion).\(osv.minorVersion).\(osv.patchVersion)"]
+        )
     }
 
     private func setupStatusItem() {

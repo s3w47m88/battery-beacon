@@ -9,8 +9,8 @@ to be complete and plain — there is no hidden collection.
 
 ## Summary
 
-- Battery Beacon collects a small amount of **anonymous usage analytics** to help
-  improve the app.
+- Battery Beacon can collect a small amount of **anonymous usage analytics** to
+  help improve the app — but only if you opt in. It is **off by default**.
 - It does **not** collect your name, email address, Apple ID, contacts, files,
   battery serial number, or any other personally identifying information.
 - Analytics are **not** used for advertising and are **not** linked to your
@@ -19,8 +19,10 @@ to be complete and plain — there is no hidden collection.
 
 ## What we collect
 
-When analytics are enabled (the default, which you may disable), the app sends
-the following anonymous information:
+Analytics are **off by default**. The app asks for your consent on first launch
+and sends nothing unless you opt in (you can change this anytime in Settings).
+When you have enabled analytics, the app sends the following anonymous
+information:
 
 - **An anonymous install identifier** — a random ID (UUID) generated on your
   device. It is not your Apple ID, device serial, or any account identifier, and
