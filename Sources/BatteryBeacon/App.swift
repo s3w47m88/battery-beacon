@@ -177,6 +177,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             alertPopover.performClose(nil)
             energy.start()
             settingsPopover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+            // LSUIElement accessory apps are not the active app when the popover
+            // opens, so the FIRST click inside it would only activate the app
+            // instead of firing the tapped control (accordion headers/buttons
+            // appearing "unresponsive"). Activate explicitly so controls respond
+            // on the first click. (App Store 2.1(a) — unresponsive UI fix.)
+            NSApp.activate(ignoringOtherApps: true)
             settingsPopover.contentViewController?.view.window?.makeKey()
         }
     }
