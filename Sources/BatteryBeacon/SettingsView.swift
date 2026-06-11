@@ -27,8 +27,13 @@ struct SettingsView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
                 // Header
-                HStack(alignment: .firstTextBaseline) {
-                    Text("Battery").font(.headline)
+                HStack(alignment: .center) {
+                    if let appIcon = NSApp.applicationIconImage {
+                        Image(nsImage: appIcon)
+                            .resizable()
+                            .frame(width: 18, height: 18)
+                    }
+                    Text("Battery Beacon").font(.headline)
                     Spacer()
                     Text("\(battery.percentage)%")
                         .font(.headline.monospacedDigit())

@@ -19,6 +19,10 @@ swiftc -O \
   -o "$MACOS_DIR/$BIN_NAME" \
   Sources/BatteryBeacon/*.swift Sources/BatteryBeaconShared/*.swift
 
+# Bundle the app icon so NSApp.applicationIconImage / Finder show the real icon
+mkdir -p "$CONTENTS/Resources"
+cp Sources/BatteryBeacon/AppIcon.icns "$CONTENTS/Resources/AppIcon.icns"
+
 cat > "$CONTENTS/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -31,6 +35,7 @@ cat > "$CONTENTS/Info.plist" <<PLIST
     <key>CFBundleVersion</key><string>1</string>
     <key>CFBundleShortVersionString</key><string>0.1.0</string>
     <key>CFBundlePackageType</key><string>APPL</string>
+    <key>CFBundleIconFile</key><string>AppIcon</string>
     <key>LSMinimumSystemVersion</key><string>14.0</string>
     <key>LSUIElement</key><true/>
     <key>NSHumanReadableCopyright</key><string>MIT License</string>
