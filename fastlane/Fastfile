@@ -1163,3 +1163,74 @@ platform :mac do
   end
 
 end
+
+  # One-shot: rename editable version to 1.0.6, set what's-new + review notes,
+  # attach build 1.0.6(15) once VALID, and submit for review.
+  lane :resubmit_106 do
+    require 'spaceship'
+    token = Spaceship::ConnectAPI::Token.create(key_id: "XG3FW9LT9Q", issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d", filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8"))
+    Spaceship::ConnectAPI.token = token
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
+
+    version = app.get_edit_app_store_version(platform: "MAC_OS")
+    if version.nil?
+      resp = Spaceship::ConnectAPI.post_app_store_version(app_id: app.id, attributes: { platform: "MAC_OS", versionString: "1.0.6", releaseType: "AFTER_APPROVAL", copyright: "2026 Spencer Hill" })
+      version = resp.to_models.first
+      UI.success("Created version 1.0.6")
+    elsif version.version_string != "1.0.6"
+      Spaceship::ConnectAPI.patch_app_store_version(app_store_version_id: version.id, attributes: { versionString: "1.0.6" })
+      UI.success("Renamed editable version #{version.version_string} -> 1.0.6")
+    end
+    UI.message("Version 1.0.6 state=#{version.app_store_state}")
+
+    # What's new
+    locs = Spaceship::ConnectAPI.get_app_store_version_localizations(app_store_version_id: version.id).to_models
+    en_v = locs.find { |l| l.locale == "en-US" }
+    Spaceship::ConnectAPI.patch_app_store_version_localization(app_store_version_localization_id: en_v.id, attributes: {
+      whatsNew: "Fixes a first-click responsiveness issue in the menu bar popover so settings respond immediately."
+    }) rescue UI.message("whatsNew: #{$!.message[0..160]}")
+
+    # Review notes for the App Review team
+    notes = "Battery Beacon is a menu-bar battery-percentage alert utility. It has NO screenshot or screen-recording features (no 'Take Screenshot' / 'Start/Stop Recording' tabs exist). Entitlements are only app-sandbox and network.client (no pictures.read-write). 'Open at login' is OFF by default and only registers via SMAppService after explicit user opt-in. The prior review referenced version 0.1.0(14) and features not present in this app; we believe a different binary may have been reviewed. Build 1.0.6(15) also fixes a first-click popover activation edge case. To use: click the battery icon in the menu bar to open the popover; expand the accordion sections to set alert thresholds."
+    begin
+      detail = version.fetch_app_store_review_detail rescue nil
+      if detail
+        Spaceship::ConnectAPI.patch_app_store_review_detail(app_store_review_detail_id: detail.id, attributes: { notes: notes })
+      else
+        Spaceship::ConnectAPI.post_app_store_review_detail(app_store_version_id: version.id, attributes: { notes: notes })
+      end
+      UI.success("Review notes set")
+    rescue => e
+      UI.message("review notes: #{e.message[0..200]}")
+    end
+
+    # Attach build 1.0.6(15) once VALID
+    deadline = Time.now + (40 * 60)
+    build = nil
+    loop do
+      builds = Spaceship::ConnectAPI::Build.all(app_id: app.id, sort: "-uploadedDate", limit: 20)
+      build = builds.find { |b| b.app_version == "1.0.6" && b.version == "15" }
+      if build && build.processing_state == "VALID"
+        UI.success("Build 1.0.6(15) VALID")
+        break
+      end
+      UI.message("waiting for build 1.0.6(15): #{build ? build.processing_state : 'not visible yet'}")
+      UI.user_error!("Timed out waiting for build 1.0.6(15)") if Time.now > deadline
+      sleep 30
+    end
+
+    Spaceship::ConnectAPI.patch_app_store_version_with_build(app_store_version_id: version.id, build_id: build.id)
+    UI.success("Attached build 15")
+
+    existing = Spaceship::ConnectAPI.get_review_submissions(app_id: app.id, filter: { state: "READY_FOR_REVIEW,WAITING_FOR_REVIEW,IN_REVIEW" }).to_models rescue []
+    sub_id = existing.first&.id
+    unless sub_id
+      sub_id = Spaceship::ConnectAPI.post_review_submission(app_id: app.id, platform: "MAC_OS").to_models.first.id
+    end
+    items = Spaceship::ConnectAPI.get_review_submission_items(review_submission_id: sub_id).to_models rescue []
+    if items.empty?
+      Spaceship::ConnectAPI.post_review_submission_item(review_submission_id: sub_id, app_store_version_id: version.id)
+    end
+    Spaceship::ConnectAPI.patch_review_submission(review_submission_id: sub_id, attributes: { submitted: true })
+    UI.success("RESUBMITTED 1.0.6(15) for review (submission #{sub_id})")
+  end
