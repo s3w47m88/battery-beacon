@@ -1234,3 +1234,104 @@ end
     Spaceship::ConnectAPI.patch_review_submission(review_submission_id: sub_id, attributes: { submitted: true })
     UI.success("RESUBMITTED 1.0.6(15) for review (submission #{sub_id})")
   end
+
+  lane :release_state_106 do
+    require 'spaceship'
+    token = Spaceship::ConnectAPI::Token.create(key_id: "XG3FW9LT9Q", issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d", filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8"))
+    Spaceship::ConnectAPI.token = token
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
+    v = app.get_latest_app_store_version(platform: "MAC_OS")
+    UI.message("version=#{v.version_string} state=#{v.app_store_state} releaseType=#{v.release_type}")
+    # Raw fetch including phased release + flags
+    resp = Spaceship::ConnectAPI.get_app_store_version(app_store_version_id: v.id, includes: "appStoreVersionPhasedRelease")
+    m = resp.to_models.first
+    UI.message("releaseType=#{m.release_type} releaseManually?=#{m.release_type == 'MANUAL'} downloadable=#{m.downloadable} created=#{m.created_date}")
+  end
+
+  lane :bb_price_diag do
+    require 'spaceship'
+    token = Spaceship::ConnectAPI::Token.create(key_id: "XG3FW9LT9Q", issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d", filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8"))
+    Spaceship::ConnectAPI.token = token
+    c = Spaceship::ConnectAPI.tunes_request_client
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
+    UI.message("PD app=#{app.id}")
+    begin
+      r = c.get("v1/apps/#{app.id}/appPriceSchedule", { "include" => "baseTerritory,manualPrices" })
+      UI.message("PD schedule=#{r.body.inspect[0..1200]}")
+    rescue => e
+      UI.message("PD schedule ERR #{e.message[0..300]}")
+    end
+    begin
+      r = c.get("v1/apps/#{app.id}/appAvailabilityV2", { "include" => "territoryAvailabilities", "limit[territoryAvailabilities]" => 5 })
+      UI.message("PD availV2=#{r.body.inspect[0..800]}")
+    rescue => e
+      UI.message("PD availV2 ERR #{e.message[0..300]}")
+    end
+  end
+
+  lane :bb_pp_list do
+    require 'spaceship'
+    require 'base64'
+    token = Spaceship::ConnectAPI::Token.create(key_id: "XG3FW9LT9Q", issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d", filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8"))
+    Spaceship::ConnectAPI.token = token
+    c = Spaceship::ConnectAPI.tunes_request_client
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
+    cur = c.get("v1/appPriceSchedules/#{app.id}/manualPrices", { "include" => "appPricePoint,territory", "limit" => 10 })
+    (cur.body["included"] || []).each { |i| UI.message("PPL current-incl #{i["type"]} #{i["id"]} #{i["attributes"].inspect[0..120]}") }
+    found = []
+    page = c.get("v1/apps/#{app.id}/appPricePoints", { "filter[territory]" => "USA", "include" => "territory", "limit" => 200 })
+    loop do
+      (page.body["data"] || []).each do |p|
+        cp = p.dig("attributes", "customerPrice").to_s
+        found << [cp, p["id"]] if ["0.00","0","0.0","0.99","1.00","1.99"].include?(cp)
+      end
+      nxt = page.body.dig("links", "next")
+      break unless nxt
+      page = c.get(nxt.sub("https://api.appstoreconnect.apple.com/", ""))
+    end
+    found.uniq.each { |cp, id| UI.message("PPL price=#{cp} id=#{id}") }
+  end
+
+  lane :bb_price_099 do
+    require 'spaceship'
+    token = Spaceship::ConnectAPI::Token.create(key_id: "XG3FW9LT9Q", issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d", filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8"))
+    Spaceship::ConnectAPI.token = token
+    c = Spaceship::ConnectAPI.tunes_request_client
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
+
+    pp_id = nil
+    page = c.get("v1/apps/#{app.id}/appPricePoints", { "filter[territory]" => "USA", "limit" => 200 })
+    loop do
+      hit = (page.body["data"] || []).find { |p| p.dig("attributes", "customerPrice").to_s == "0.99" }
+      if hit then pp_id = hit["id"]; break end
+      nxt = page.body.dig("links", "next")
+      break unless nxt
+      page = c.get(nxt.sub("https://api.appstoreconnect.apple.com/", ""))
+    end
+    UI.user_error!("No $0.99 price point for USA") unless pp_id
+    UI.message("P99 using price point #{pp_id}")
+
+    body = {
+      data: {
+        type: "appPriceSchedules",
+        relationships: {
+          app: { data: { type: "apps", id: app.id } },
+          baseTerritory: { data: { type: "territories", id: "USA" } },
+          manualPrices: { data: [{ type: "appPrices", id: "${price1}" }] }
+        }
+      },
+      included: [
+        {
+          type: "appPrices",
+          id: "${price1}",
+          attributes: {},
+          relationships: { appPricePoint: { data: { type: "appPricePoints", id: pp_id } } }
+        }
+      ]
+    }
+    resp = c.post("v1/appPriceSchedules", body)
+    UI.success("P99 schedule set id=#{resp.body.dig("data", "id")}")
+
+    verify = c.get("v1/appPriceSchedules/#{app.id}/manualPrices", { "include" => "appPricePoint,territory", "limit" => 10 })
+    (verify.body["included"] || []).each { |i| UI.message("P99 verify #{i["type"]} #{i["attributes"].inspect[0..120]}") }
+  end
