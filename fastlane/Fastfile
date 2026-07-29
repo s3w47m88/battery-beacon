@@ -1335,3 +1335,116 @@ end
     verify = c.get("v1/appPriceSchedules/#{app.id}/manualPrices", { "include" => "appPricePoint,territory", "limit" => 10 })
     (verify.body["included"] || []).each { |i| UI.message("P99 verify #{i["type"]} #{i["attributes"].inspect[0..120]}") }
   end
+
+  lane :bb_vendor do
+    require 'spaceship'
+    token = Spaceship::ConnectAPI::Token.create(key_id: "XG3FW9LT9Q", issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d", filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8"))
+    Spaceship::ConnectAPI.token = token
+    c = Spaceship::ConnectAPI.tunes_request_client
+    begin
+      r = c.get("v1/salesReports", {
+        "filter[frequency]" => "DAILY",
+        "filter[reportType]" => "SALES",
+        "filter[reportSubType]" => "SUMMARY",
+        "filter[vendorNumber]" => "BOGUS",
+        "filter[reportDate]" => "2026-07-01"
+      })
+      UI.message("VN unexpected ok #{r.body.inspect[0..300]}")
+    rescue => e
+      UI.message("VN probe: #{e.message[0..600]}")
+    end
+  end
+
+  lane :bb_analytics_probe do
+    require 'spaceship'
+    token = Spaceship::ConnectAPI::Token.create(key_id: "XG3FW9LT9Q", issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d", filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8"))
+    Spaceship::ConnectAPI.token = token
+    c = Spaceship::ConnectAPI.tunes_request_client
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
+    begin
+      r = c.get("v1/apps/#{app.id}/analyticsReportRequests", { "limit" => 50 })
+      UI.message("AN requests=#{r.body.inspect[0..900]}")
+    rescue => e
+      UI.message("AN requests ERR #{e.message[0..400]}")
+    end
+  end
+
+  lane :bb_analytics_create do
+    require 'spaceship'
+    token = Spaceship::ConnectAPI::Token.create(key_id: "XG3FW9LT9Q", issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d", filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8"))
+    Spaceship::ConnectAPI.token = token
+    c = Spaceship::ConnectAPI.tunes_request_client
+    app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
+    body = {
+      data: {
+        type: "analyticsReportRequests",
+        attributes: { accessType: "ONE_TIME_SNAPSHOT" },
+        relationships: { app: { data: { type: "apps", id: app.id } } }
+      }
+    }
+    begin
+      r = c.post("v1/analyticsReportRequests", body)
+      UI.success("ANC created id=#{r.body.dig("data","id")} attrs=#{r.body.dig("data","attributes").inspect}")
+    rescue => e
+      UI.message("ANC ERR #{e.message[0..500]}")
+    end
+  end
+
+  lane :bb_analytics_check do
+    require 'spaceship'
+    token = Spaceship::ConnectAPI::Token.create(key_id: "XG3FW9LT9Q", issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d", filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8"))
+    Spaceship::ConnectAPI.token = token
+    c = Spaceship::ConnectAPI.tunes_request_client
+    rid = ENV["REQ_ID"] || "378c0d4b-81ce-4454-abd9-f7e5f682e972"
+    begin
+      r = c.get("v1/analyticsReportRequests/#{rid}/reports", { "limit" => 200 })
+      data = r.body["data"] || []
+      UI.message("ANK reports=#{data.size}")
+      data.each { |d| UI.message("ANK #{d.dig("attributes","name")} | #{d.dig("attributes","category")} | #{d["id"]}") }
+    rescue => e
+      UI.message("ANK ERR #{e.message[0..400]}")
+    end
+  end
+
+  lane :bb_downloads do
+    require 'spaceship'
+    require 'net/http'
+    require 'zlib'
+    require 'stringio'
+    token = Spaceship::ConnectAPI::Token.create(key_id: "XG3FW9LT9Q", issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d", filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8"))
+    Spaceship::ConnectAPI.token = token
+    c = Spaceship::ConnectAPI.tunes_request_client
+    report_id = ENV["REPORT_ID"]
+    insts = c.get("v1/analyticsReports/#{report_id}/instances", { "limit" => 200 })
+    (insts.body["data"] || []).each do |inst|
+      gran = inst.dig("attributes", "granularity"); date = inst.dig("attributes", "processingDate")
+      UI.message("DL inst #{inst["id"]} #{gran} #{date}")
+      segs = c.get("v1/analyticsReportInstances/#{inst["id"]}/segments", { "limit" => 100 })
+      (segs.body["data"] || []).each do |s|
+        url = s.dig("attributes", "url")
+        UI.message("DL   seg rows=#{s.dig("attributes","sizeInBytes")}")
+        raw = Net::HTTP.get(URI(url))
+        text = (begin; Zlib::GzipReader.new(StringIO.new(raw)).read; rescue; raw; end)
+        File.write("/tmp/bb_report_#{inst["id"]}.tsv", text)
+        UI.message("DL   wrote /tmp/bb_report_#{inst["id"]}.tsv (#{text.lines.size} lines)")
+      end
+    end
+  end
+
+  lane :bb_inst_raw do
+    require 'spaceship'
+    token = Spaceship::ConnectAPI::Token.create(key_id: "XG3FW9LT9Q", issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d", filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8"))
+    Spaceship::ConnectAPI.token = token
+    c = Spaceship::ConnectAPI.tunes_request_client
+    %w[r3 r4].each do |p|
+      rid = "#{p}-378c0d4b-81ce-4454-abd9-f7e5f682e972"
+      begin
+        r = c.get("v1/analyticsReports/#{rid}/instances", { "limit" => 200 })
+        UI.message("IR #{p} => #{r.body.inspect[0..600]}")
+      rescue => e
+        UI.message("IR #{p} ERR #{e.message[0..300]}")
+      end
+    end
+    r = c.get("v1/analyticsReportRequests/378c0d4b-81ce-4454-abd9-f7e5f682e972")
+    UI.message("IR request => #{r.body.inspect[0..400]}")
+  end
