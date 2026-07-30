@@ -1448,3 +1448,227 @@ end
     r = c.get("v1/analyticsReportRequests/378c0d4b-81ce-4454-abd9-f7e5f682e972")
     UI.message("IR request => #{r.body.inspect[0..400]}")
   end
+
+  lane :bb_web_probe do
+    require 'spaceship'
+    begin
+      Spaceship::Tunes.login(ENV["ASC_USER"] || "thespencerhill@gmail.com", ENV["ASC_PASS"])
+      UI.message("WEB login OK")
+      c = Spaceship::Tunes.client
+      UI.message("WEB team_id=#{c.team_id rescue 'err'}")
+      UI.message("WEB teams=#{(c.teams.inspect[0..600] rescue 'err')}")
+    rescue => e
+      UI.message("WEB FAILED #{e.class}: #{e.message[0..400]}")
+    end
+  end
+
+  lane :bb_units do
+    require 'spaceship'
+    require 'net/http'
+    require 'json'
+    Spaceship::Tunes.login("thespencerhill@gmail.com")
+    client = Spaceship::Tunes.client
+    cookie = client.cookie
+    adam = "6773545790"
+
+    uri = URI("https://appstoreconnect.apple.com/analytics/api/v1/data/time-series")
+    body = {
+      adamId: [adam],
+      measures: ["units"],
+      frequency: "day",
+      startTime: "2026-06-01T00:00:00Z",
+      endTime:   "2026-07-29T00:00:00Z",
+      group: nil,
+      dimensionFilters: []
+    }
+    http = Net::HTTP.new(uri.host, 443); http.use_ssl = true
+    req = Net::HTTP::Post.new(uri)
+    req["Content-Type"] = "application/json"
+    req["Accept"] = "application/json"
+    req["X-Requested-By"] = "appstoreconnect.apple.com"
+    req["Cookie"] = cookie
+    req.body = body.to_json
+    resp = http.request(req)
+    UI.message("UNITS http=#{resp.code}")
+    if resp.code.to_i == 200
+      j = JSON.parse(resp.body)
+      total = 0
+      (j["results"] || []).each do |r|
+        t = r.dig("totals", "value") || 0
+        total += t
+        UI.message("UNITS series total=#{t}")
+        (r["data"] || []).each { |d| UI.message("UNITS #{d["date"]} = #{d["value"]}") }
+      end
+      UI.success("UNITS TOTAL DOWNLOADS = #{total}")
+    else
+      UI.message("UNITS body=#{resp.body[0..500]}")
+    end
+  end
+
+  lane :bb_vendor_find do
+    require 'spaceship'
+    Spaceship::Tunes.login("thespencerhill@gmail.com")
+    c = Spaceship::Tunes.client
+    begin
+      UI.message("VF team_id=#{c.team_id}")
+    rescue => e
+      UI.message("VF team_id ERR #{e.message[0..200]}")
+    end
+    begin
+      d = c.request(:get, "ra/user/detail")
+      j = JSON.parse(d.body.to_json) rescue nil
+      raw = d.body
+      cp = raw.dig("data", "contentProviderId") rescue nil
+      UI.message("VF contentProviderId=#{cp.inspect}")
+      UI.message("VF associatedAccounts=#{(raw.dig("data","associatedAccounts").inspect[0..400] rescue 'n/a')}")
+    rescue => e
+      UI.message("VF detail ERR #{e.message[0..250]}")
+    end
+  end
+
+  lane :bb_sales do
+    require 'spaceship'
+    require 'zlib'
+    require 'stringio'
+    require 'date'
+    token = Spaceship::ConnectAPI::Token.create(key_id: "XG3FW9LT9Q", issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d", filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8"))
+    Spaceship::ConnectAPI.token = token
+    c = Spaceship::ConnectAPI.tunes_request_client
+    vendor = ENV["VENDOR"] || "127807170"
+
+    by_type = Hash.new(0)
+    by_country = Hash.new(0)
+    days = 0
+    (Date.new(2026,6,1)..Date.new(2026,7,29)).each do |d|
+      begin
+        r = c.get("v1/salesReports", {
+          "filter[frequency]" => "DAILY",
+          "filter[reportType]" => "SALES",
+          "filter[reportSubType]" => "SUMMARY",
+          "filter[vendorNumber]" => vendor,
+          "filter[reportDate]" => d.strftime("%Y-%m-%d")
+        })
+        raw = r.body
+        raw = raw.read if raw.respond_to?(:read)
+        text = (begin; Zlib::GzipReader.new(StringIO.new(raw.to_s)).read; rescue; raw.to_s; end)
+        lines = text.split("\n")
+        next if lines.size < 2
+        hdr = lines[0].split("\t")
+        i_sku = hdr.index("SKU"); i_units = hdr.index("Units")
+        i_type = hdr.index("Product Type Identifier"); i_cc = hdr.index("Country Code")
+        i_title = hdr.index("Title")
+        found = false
+        lines[1..].each do |ln|
+          f = ln.split("\t")
+          next unless f[i_sku].to_s.include?("batterybeacon") || f[i_title].to_s.include?("Battery Beacon")
+          u = f[i_units].to_i
+          by_type[f[i_type]] += u
+          by_country[f[i_cc]] += u
+          found = true
+        end
+        days += 1 if found
+        UI.message("SL #{d} rows=#{lines.size - 1}#{found ? ' HIT' : ''}")
+      rescue => e
+        msg = e.message.to_s
+        UI.message("SL #{d} ERR #{msg[0..100]}") unless msg =~ /404|not found|no.*report|NOT_FOUND/i
+      end
+    end
+    UI.success("SL === byType: #{by_type.inspect}")
+    UI.success("SL === byCountry: #{by_country.sort_by { |_,v| -v }.first(15).inspect}")
+    UI.success("SL === GRAND TOTAL UNITS = #{by_type.values.sum} across #{days} days with sales")
+  end
+
+  lane :bb_vendor_probe2 do
+    require 'spaceship'
+    require 'net/http'
+    Spaceship::Tunes.login("thespencerhill@gmail.com")
+    cookie = Spaceship::Tunes.client.cookie
+    paths = [
+      "https://appstoreconnect.apple.com/WebObjects/iTunesConnect.woa/ra/paymentsAndFinancialReports/vendorsAndRegions",
+      "https://appstoreconnect.apple.com/financial-reports/api/v1/vendors",
+      "https://appstoreconnect.apple.com/api/v1/vendors",
+      "https://appstoreconnect.apple.com/WebObjects/iTunesConnect.woa/ra/user/detail",
+      "https://appstoreconnect.apple.com/trends/api/v1/vendors",
+      "https://appstoreconnect.apple.com/salestrends/api/v1/vendors"
+    ]
+    paths.each do |u|
+      begin
+        uri = URI(u)
+        http = Net::HTTP.new(uri.host, 443); http.use_ssl = true
+        req = Net::HTTP::Get.new(uri)
+        req["Cookie"] = cookie
+        req["Accept"] = "application/json"
+        req["X-Requested-By"] = "appstoreconnect.apple.com"
+        r = http.request(req)
+        UI.message("VP2 #{uri.path} => #{r.code}")
+        if r.code.to_i == 200
+          hits = r.body.scan(/\b8\d{7,9}\b/).uniq
+          UI.message("VP2    vendor-like=#{hits.first(10).inspect}")
+          UI.message("VP2    body=#{r.body[0..400]}")
+        end
+      rescue => e
+        UI.message("VP2 #{u[-40..]} ERR #{e.message[0..120]}")
+      end
+    end
+  end
+
+  lane :bb_vendor_try do
+    require 'spaceship'
+    token = Spaceship::ConnectAPI::Token.create(key_id: "XG3FW9LT9Q", issuer_id: "178bab61-1c45-4f62-9525-55f8ed15a98d", filepath: File.expand_path("~/.appstoreconnect/private_keys/AuthKey_XG3FW9LT9Q.p8"))
+    Spaceship::ConnectAPI.token = token
+    c = Spaceship::ConnectAPI.tunes_request_client
+    %w[218447830 127807170 8127807170].each do |v|
+      begin
+        c.get("v1/salesReports", {
+          "filter[frequency]" => "MONTHLY", "filter[reportType]" => "SALES",
+          "filter[reportSubType]" => "SUMMARY", "filter[vendorNumber]" => v,
+          "filter[reportDate]" => "2026-06"
+        })
+        UI.success("VT #{v} => OK (valid vendor!)")
+      rescue => e
+        m = e.message.to_s
+        UI.message("VT #{v} => #{m =~ /vendor/i ? 'INVALID VENDOR' : m[0..90]}")
+      end
+    end
+  end
+
+  lane :bb_cookie_dump do
+    require 'spaceship'
+    require 'json'
+    Spaceship::Tunes.login("thespencerhill@gmail.com")
+    jar = Spaceship::Tunes.client.instance_variable_get(:@cookie)
+    out = []
+    Spaceship::Tunes.client.cookie.split("; ").each do |kv|
+      name, _, value = kv.partition("=")
+      next if name.to_s.empty? || value.to_s.empty?
+      dom = case name
+            when "dqsid" then "appstoreconnect.apple.com"
+            when /^DES/ then "idmsa.apple.com"
+            else ".apple.com"
+            end
+      out << { name: name, value: value, domain: dom, path: "/", secure: true, httpOnly: true }
+    end
+    File.write("/private/tmp/claude-501/-Users-spencerhill-Sites-tpc-battery-beacon/cf4ea25a-187e-4322-8fa6-c6eac0a53d32/scratchpad/cookies.json", JSON.pretty_generate(out))
+    UI.success("CD wrote #{out.size} cookies: #{out.map { |c| c[:name] }.inspect}")
+  end
+
+  lane :bb_cookie_dump2 do
+    require 'yaml'
+    require 'json'
+    require 'http-cookie'
+    path = File.expand_path("~/.fastlane/spaceship/thespencerhill@gmail.com/cookie")
+    raw = File.read(path)
+    cookies = begin
+      YAML.unsafe_load(raw)
+    rescue
+      YAML.load(raw, permitted_classes: [HTTP::Cookie, Time, Symbol], aliases: true)
+    end
+    out = cookies.map do |c|
+      d = c.domain.to_s
+      d = ".#{d}" if c.for_domain && !d.start_with?(".")
+      { name: c.name, value: c.value, domain: d, path: (c.path || "/"), secure: !!c.secure, httpOnly: !!c.httponly }
+    end
+    dest = "/private/tmp/claude-501/-Users-spencerhill-Sites-tpc-battery-beacon/cf4ea25a-187e-4322-8fa6-c6eac0a53d32/scratchpad/cookies.json"
+    File.write(dest, JSON.pretty_generate(out))
+    UI.success("CD2 #{out.size} cookies: #{out.map { |c| "#{c[:name]}@#{c[:domain]}" }.join(', ')}")
+  end
