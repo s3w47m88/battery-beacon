@@ -1672,3 +1672,19 @@ end
     File.write(dest, JSON.pretty_generate(out))
     UI.success("CD2 #{out.size} cookies: #{out.map { |c| "#{c[:name]}@#{c[:domain]}" }.join(', ')}")
   end
+
+  # CI: download the existing App Store provisioning profile via the ASC API key
+  # and install it where xcodebuild finds it. readonly so it never regenerates
+  # certs/profiles from a runner. Fully headless — the whole point of the pipeline.
+  desc "CI: fetch + install the App Store provisioning profile (readonly)"
+  lane :ci_profile do
+    get_provisioning_profile(
+      api_key: API_KEY.call,
+      app_identifier: "com.spencerhill.batterybeacon",
+      platform: "macos",
+      developer_id: false,
+      provisioning_name: "com.spencerhill.batterybeacon AppStore",
+      filename: "BatteryBeacon_AppStore.mobileprovision",
+      readonly: true
+    )
+  end
