@@ -1,0 +1,160 @@
+name: Release
+
+# Fully headless CI/CD for Battery Beacon (macOS App Store app).
+# No Apple ID in Xcode, no Xcode Cloud, no OAuth. Auth is entirely the
+# App Store Connect API key; signing certs travel as a base64 .p12 secret;
+# the provisioning profile is fetched fresh each run via the API key.
+#
+#   git tag v1.0.7           && git push origin v1.0.7           -> TestFlight
+#   git tag v1.0.7-appstore  && git push origin v1.0.7-appstore  -> TestFlight + App Store review
+#
+# The tag drives the marketing version (v1.0.7 -> 1.0.7); the build number is
+# auto-derived as (latest build on App Store Connect + 1).
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: macos-15
+    timeout-minutes: 60
+    env:
+      BUNDLE_ID: com.spencerhill.batterybeacon
+      TEAM_ID: VP38993WK6
+      SCHEME: BatteryBeacon
+      PROJECT: BatteryBeacon.xcodeproj
+      PROFILE_NAME: "com.spencerhill.batterybeacon AppStore"
+      SIGN_APP: "Apple Distribution: Spencer Hill (VP38993WK6)"
+      SIGN_INSTALLER: "3rd Party Mac Developer Installer: Spencer Hill (VP38993WK6)"
+      APP_NAME: "Battery Beacon"
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select newest Xcode
+        run: |
+          NEWEST=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
+          echo "Using $NEWEST"
+          sudo xcode-select -s "$NEWEST/Contents/Developer"
+          xcodebuild -version
+          swift --version
+
+      - name: Derive version from tag
+        id: ver
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          MV="${TAG#v}"; MV="${MV%-appstore}"
+          echo "marketing=$MV" >> "$GITHUB_OUTPUT"
+          if [[ "$TAG" == *-appstore ]]; then echo "appstore=true" >> "$GITHUB_OUTPUT"; else echo "appstore=false" >> "$GITHUB_OUTPUT"; fi
+          echo "Marketing version: $MV  (App Store submit: $([[ "$TAG" == *-appstore ]] && echo yes || echo no))"
+
+      - name: Write App Store Connect API key
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "${{ secrets.ASC_API_KEY_P8_BASE64 }}" | base64 -d > ~/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8
+
+      - name: Compute next build number
+        id: build
+        run: |
+          python3 -m pip install --quiet --break-system-packages pyjwt cryptography || python3 -m pip install --quiet pyjwt cryptography
+          NEXT=$(python3 - <<'PY'
+          import jwt, time, json, urllib.request, os
+          kid=os.environ["ASC_KEY_ID"]; iss=os.environ["ASC_ISSUER_ID"]; bid=os.environ["BUNDLE_ID"]
+          key=open(os.path.expanduser(f"~/.appstoreconnect/private_keys/AuthKey_{kid}.p8")).read()
+          tok=jwt.encode({"iss":iss,"iat":int(time.time()),"exp":int(time.time())+600,"aud":"appstoreconnect-v1"},key,algorithm="ES256",headers={"kid":kid,"typ":"JWT"})
+          def api(p):
+              r=urllib.request.Request("https://api.appstoreconnect.apple.com"+p,headers={"Authorization":"Bearer "+tok})
+              return json.load(urllib.request.urlopen(r,timeout=30))
+          apps=api(f"/v1/apps?filter[bundleId]={bid}&limit=1")["data"]
+          hi=0
+          if apps:
+              aid=apps[0]["id"]
+              builds=api(f"/v1/builds?filter[app]={aid}&limit=200&fields[builds]=version")["data"]
+              for b in builds:
+                  try: hi=max(hi,int(b["attributes"]["version"]))
+                  except: pass
+          print(hi+1)
+          PY
+          )
+          echo "Next build number: $NEXT"
+          echo "number=$NEXT" >> "$GITHUB_OUTPUT"
+
+      - name: Generate Xcode project
+        run: |
+          brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
+          xcodegen generate
+          xcodebuild -list -project "$PROJECT"
+
+      - name: Import signing certificates
+        run: |
+          KC="$RUNNER_TEMP/signing.keychain-db"
+          KCPW="${{ secrets.KEYCHAIN_PASSWORD }}"
+          echo "${{ secrets.APPLE_CERTS_P12_BASE64 }}" | base64 -d > "$RUNNER_TEMP/certs.p12"
+          security create-keychain -p "$KCPW" "$KC"
+          security set-keychain-settings -lut 21600 "$KC"
+          security unlock-keychain -p "$KCPW" "$KC"
+          security import "$RUNNER_TEMP/certs.p12" -P "${{ secrets.APPLE_CERTS_P12_PASSWORD }}" -A -t cert -f pkcs12 -k "$KC"
+          security list-keychains -d user -s "$KC" $(security list-keychains -d user | tr -d '"')
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KCPW" "$KC" >/dev/null
+          security find-identity -v -p codesigning "$KC"
+          security find-identity -v "$KC" | grep -i installer
+
+      - name: Fetch & install provisioning profile
+        run: |
+          gem install fastlane --no-document || sudo gem install fastlane --no-document || true
+          command -v fastlane >/dev/null 2>&1 || brew install fastlane
+          FASTLANE_SKIP_UPDATE_CHECK=1 fastlane ci_profile
+
+      - name: Archive
+        run: |
+          rm -rf build/BB.xcarchive
+          xcodebuild -project "$PROJECT" -scheme "$SCHEME" \
+            -configuration Release -archivePath build/BB.xcarchive archive \
+            CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="$TEAM_ID" \
+            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" \
+            CODE_SIGN_IDENTITY="$SIGN_APP" \
+            MARKETING_VERSION="${{ steps.ver.outputs.marketing }}" \
+            CURRENT_PROJECT_VERSION="${{ steps.build.outputs.number }}"
+
+      - name: Export for App Store
+        run: |
+          cat > "$RUNNER_TEMP/exportOptions.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store</string>
+            <key>teamID</key><string>${TEAM_ID}</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>signingCertificate</key><string>${SIGN_APP}</string>
+            <key>installerSigningCertificate</key><string>${SIGN_INSTALLER}</string>
+            <key>provisioningProfiles</key><dict>
+              <key>${BUNDLE_ID}</key><string>${PROFILE_NAME}</string>
+            </dict>
+            <key>uploadSymbols</key><true/>
+          </dict></plist>
+          PLIST
+          rm -rf build/export
+          xcodebuild -exportArchive -archivePath build/BB.xcarchive \
+            -exportPath build/export -exportOptionsPlist "$RUNNER_TEMP/exportOptions.plist"
+          ls -la build/export
+
+      - name: Upload to TestFlight
+        run: |
+          xcrun altool --upload-app -f "build/export/${APP_NAME}.pkg" -t macos \
+            --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
+
+      - name: Submit to App Store review
+        if: steps.ver.outputs.appstore == 'true'
+        run: |
+          # Wait for the just-uploaded build to finish processing, then attach it
+          # to a new App Store version and submit for review via the existing lane.
+          FASTLANE_SKIP_UPDATE_CHECK=1 fastlane wait_build || echo "::warning::build did not reach VALID in window"
+          FASTLANE_SKIP_UPDATE_CHECK=1 fastlane attach_and_submit \
+            || echo "::warning::App Store submit failed — build is on TestFlight; submit manually if needed."
