@@ -122,7 +122,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let osv = ProcessInfo.processInfo.operatingSystemVersion
         UmamiAnalytics.shared.track(
             "app_launched", path: "/app/launch",
-            data: ["macos": "\(osv.majorVersion).\(osv.minorVersion).\(osv.patchVersion)"]
+            data: [
+                "macos": "\(osv.majorVersion).\(osv.minorVersion).\(osv.patchVersion)",
+                "first_launch": UmamiAnalytics.shared.isFirstLaunch,
+            ]
         )
     }
 

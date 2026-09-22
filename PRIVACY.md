@@ -1,6 +1,6 @@
 # Battery Beacon — Privacy Policy
 
-**Effective date:** June 10, 2026
+**Effective date:** September 22, 2026
 
 Battery Beacon ("the app") is a menu-bar utility for macOS that alerts you when
 your Mac's battery reaches a percentage you choose. This policy explains exactly
@@ -62,6 +62,20 @@ third-party analytics or advertising network.
   app sends nothing.
 - Because the data is anonymous, we cannot link it back to you to retrieve or
   delete an individual record. Disabling analytics stops all future collection.
+
+## Advertising and our website
+
+The Portland Company may advertise Battery Beacon. Our website/landing page at
+`batterybeacon.theportlandcompany.com` uses Umami page analytics (the same
+privacy-focused, cookie-free service described above) and the X (Twitter) ads
+pixel to measure the performance of those ads. When you click through from an
+ad to the App Store, the link carries an Apple campaign token so Apple can
+report to us which ad led to a download — Apple, not us, records that
+association.
+
+This applies only to the website, not the app. **Battery Beacon itself does
+not receive any advertising identifiers and does not perform App Tracking
+Transparency (ATT) tracking.**
 
 ## Data retention
 

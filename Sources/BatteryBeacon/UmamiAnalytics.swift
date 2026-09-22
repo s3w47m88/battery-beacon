@@ -24,6 +24,7 @@ final class UmamiAnalytics {
     private let defaults = UserDefaults.standard
     private let installIDKey = "umami.installID"
     private let queueKey = "umami.pendingEvents"
+    private let firstLaunchSentKey = "umami.firstLaunchSent"
 
     /// Set by AppDelegate from AppSettings; gates all sends.
     var isEnabled = true
@@ -53,6 +54,18 @@ final class UmamiAnalytics {
         let new = UUID().uuidString
         defaults.set(new, forKey: installIDKey)
         return new
+    }
+
+    /// True the first time this install ever sends `app_launched`, keyed off
+    /// the first analytics *launch event* rather than install time — analytics
+    /// are opt-in and off by default, so a user who consents weeks after
+    /// install should still be reported as `first_launch`. Marks itself sent
+    /// immediately (before the network call resolves) so a retry or a second
+    /// launch this session can never report it twice.
+    var isFirstLaunch: Bool {
+        let alreadySent = defaults.bool(forKey: firstLaunchSentKey)
+        if !alreadySent { defaults.set(true, forKey: firstLaunchSentKey) }
+        return !alreadySent
     }
 
     // MARK: - Public API
