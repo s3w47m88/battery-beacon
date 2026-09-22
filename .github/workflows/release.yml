@@ -156,5 +156,5 @@ jobs:
           # Wait for the just-uploaded build to finish processing, then attach it
           # to a new App Store version and submit for review via the existing lane.
           FASTLANE_SKIP_UPDATE_CHECK=1 fastlane wait_build || echo "::warning::build did not reach VALID in window"
-          FASTLANE_SKIP_UPDATE_CHECK=1 fastlane attach_and_submit \
+          MARKETING_VERSION="${{ steps.ver.outputs.marketing }}" FASTLANE_SKIP_UPDATE_CHECK=1 fastlane attach_and_submit \
             || echo "::warning::App Store submit failed — build is on TestFlight; submit manually if needed."

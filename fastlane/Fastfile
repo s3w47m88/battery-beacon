@@ -1062,18 +1062,28 @@ platform :mac do
     Spaceship::ConnectAPI.token = token
     app = Spaceship::ConnectAPI::App.find("com.spencerhill.batterybeacon")
     version = app.get_edit_app_store_version(platform: "MAC_OS")
+    # CI passes MARKETING_VERSION; create that version when nothing is editable yet.
+    if !version && (mv = ENV["MARKETING_VERSION"])
+      version = Spaceship::ConnectAPI.post_app_store_version(app_id: app.id, attributes: { platform: "MAC_OS", versionString: mv, releaseType: "AFTER_APPROVAL", copyright: "#{Time.now.year} Spencer Hill" }).to_models.first
+    end
     UI.user_error!("No editable version") unless version
     UI.message("Version #{version.version_string} state=#{version.app_store_state}")
 
-    target = ENV["SUBMIT_BUILD"] || "9"
+    # Default to the newest upload for this version.
     builds = Spaceship::ConnectAPI::Build.all(app_id: app.id, sort: "-uploadedDate", limit: 20)
-    build = builds.find { |b| b.app_version == version.version_string && b.version == target }
+    build = builds.find { |b| b.app_version == version.version_string && (ENV["SUBMIT_BUILD"].nil? || b.version == ENV["SUBMIT_BUILD"]) }
+    target = ENV["SUBMIT_BUILD"] || "latest"
     UI.user_error!("Build #{version.version_string}(#{target}) not found in App Store Connect") unless build
     UI.message("Found build #{build.app_version}(#{build.version}) state=#{build.processing_state}")
     UI.user_error!("Build still processing (state=#{build.processing_state}) — wait and retry") unless build.processing_state == "VALID"
 
     Spaceship::ConnectAPI.patch_app_store_version_with_build(app_store_version_id: version.id, build_id: build.id)
     UI.success("Attached build #{build.version} to #{version.version_string}")
+
+    en = Spaceship::ConnectAPI.get_app_store_version_localizations(app_store_version_id: version.id).to_models.find { |l| l.locale == "en-US" }
+    if en && en.whats_new.to_s.strip.empty?
+      Spaceship::ConnectAPI.patch_app_store_version_localization(app_store_version_localization_id: en.id, attributes: { whatsNew: "Bug fixes and small improvements." })
+    end
 
     sub = Spaceship::ConnectAPI.post_review_submission(app_id: app.id, platform: "MAC_OS")
     sub_id = sub.to_models.first.id
