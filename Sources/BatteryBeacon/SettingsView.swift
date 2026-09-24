@@ -88,6 +88,22 @@ struct SettingsView: View {
                     Button("Quit") { NSApplication.shared.terminate(nil) }
                         .keyboardShortcut("q")
                 }
+
+                Divider()
+
+                HStack {
+                    Link(destination: URL(string: "https://theportlandcompany.com/apps")!) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "square.grid.2x2")
+                            Text("More apps by Spencer Hill & The Portland Company")
+                            Image(systemName: "chevron.right")
+                        }
+                    }
+                    .buttonStyle(.borderless)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                    Spacer()
+                }
             }
             .padding(16)
             .frame(width: 340)
