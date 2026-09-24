@@ -1,0 +1,140 @@
+- generic [ref=e1]:
+  - link "Skip to content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e3]:
+    - navigation "Primary" [ref=e4]:
+      - generic [ref=e5]: Ads Control
+      - generic [ref=e8]:
+        - link "Overview" [ref=e9] [cursor=pointer]:
+          - /url: "#/overview"
+          - generic [aria-hidden] [ref=e10]: ◎
+        - link "Funnel" [ref=e12] [cursor=pointer]:
+          - /url: "#/funnel"
+          - generic [aria-hidden] [ref=e13]: ▽
+        - link "Campaigns" [ref=e15] [cursor=pointer]:
+          - /url: "#/campaigns"
+          - generic [aria-hidden] [ref=e16]: ▤
+        - link "Decisions" [ref=e18] [cursor=pointer]:
+          - /url: "#/decisions"
+          - generic [aria-hidden] [ref=e19]: ≡
+        - link "Rules" [ref=e21] [cursor=pointer]:
+          - /url: "#/rules"
+          - generic [aria-hidden] [ref=e22]: ⚙
+        - link "Platforms" [ref=e24] [cursor=pointer]:
+          - /url: "#/platforms"
+          - generic [aria-hidden] [ref=e25]: ⚭
+      - generic [ref=e27]:
+        - generic "Reading from local mock data, not the live API" [ref=e28]: Mock data
+        - group "Theme" [ref=e29]:
+          - button "◐" [pressed] [ref=e30] [cursor=pointer]
+          - button "☀" [ref=e31] [cursor=pointer]
+          - button "☽" [ref=e32] [cursor=pointer]
+    - main [ref=e33]:
+      - generic [ref=e35]:
+        - heading "Decisions" [level=1] [ref=e262]
+        - generic [ref=e37]: Every run the automation made, and why
+      - generic [active] [ref=e38]:
+        - search "Run filters" [ref=e1002]:
+          - generic [ref=e1003]:
+            - text: Source
+            - combobox "Source" [ref=e1004]:
+              - option "All sources"
+              - option "Scheduled"
+              - option "Manual"
+              - option "Agent" [selected]
+          - generic [ref=e1005]:
+            - text: Outcome
+            - combobox "Outcome" [ref=e1006]:
+              - option "All outcomes" [selected]
+              - option "Pass"
+              - option "Fail"
+              - option "Skip"
+              - option "Info"
+          - generic [ref=e1007]:
+            - text: Rule
+            - combobox "Rule" [ref=e1008]:
+              - option "All rules" [selected]
+              - option "company_pool"
+              - option "app_cap"
+              - option "user_pause"
+              - option "daily_overspend"
+              - option "cpc_too_high"
+              - option "ctr_too_low"
+              - option "ramp"
+              - option "pace"
+              - option "split"
+              - option "budget"
+              - option "budget_exhausted"
+              - option "manual_pause"
+              - option "manual_resume"
+              - option "agent_note"
+          - button "Run now (dry run)" [ref=e1009] [cursor=pointer]
+        - generic [ref=e1010]:
+          - generic [ref=e1011]:
+            - generic [ref=e1012]: Runs
+            - button "r_032 · Agent dry-run ok Sep 2, 2:00 AM (21d ago) · Agent check-in — no action needed" [ref=e1016] [cursor=pointer]:
+              - generic [ref=e1017]:
+                - generic [ref=e1018]:
+                  - strong [ref=e1019]: r_032
+                  - text: · Agent
+                - generic [ref=e1020]:
+                  - generic [ref=e1021]: dry-run
+                  - generic [ref=e1022]: ok
+              - generic [ref=e1023]: Sep 2, 2:00 AM (21d ago) · Agent check-in — no action needed
+          - generic [ref=e1024]:
+            - generic [ref=e1025]: Run r_021
+            - generic [ref=e1027]:
+              - generic [ref=e1028]:
+                - generic [ref=e1029]: ok
+                - generic [ref=e1030]: Live run
+                - generic [ref=e1031]: Scheduled · rules v3 · Aug 26, 5:00 AM
+              - generic [ref=e1032]:
+                - generic [ref=e1033]:
+                  - generic [ref=e1034]:
+                    - generic [aria-hidden] [ref=e1035]: ✓
+                    - text: Pass
+                  - generic [ref=e1036]: company_pool
+                - generic [ref=e1037]: "All apps together: $198.64 of $500.00 this month."
+                - generic [ref=e1038]:
+                  - generic [ref=e1039]:
+                    - text: "Inputs:"
+                    - code [ref=e1040]: "pool_mtd=198.64, by_app={\"bb\":121.74,\"sss\":76.9}"
+                  - generic [ref=e1041]:
+                    - text: "Threshold:"
+                    - code [ref=e1042]: < $500.00
+                - generic [ref=e1043]: No action taken
+              - generic [ref=e1045]:
+                - generic [ref=e1046]:
+                  - generic [ref=e1047]:
+                    - generic [aria-hidden] [ref=e1048]: ✓
+                    - text: Pass
+                  - generic [ref=e1049]: app_cap
+                  - generic [ref=e1050]: bb
+                - generic [ref=e1051]: bb has spent $121.74 this month, under its $350.00 cap.
+                - generic [ref=e1052]:
+                  - generic [ref=e1053]:
+                    - text: "Inputs:"
+                    - code [ref=e1054]: app_mtd=121.74
+                  - generic [ref=e1055]:
+                    - text: "Threshold:"
+                    - code [ref=e1056]: < $350.00
+                - generic [ref=e1057]: No action taken
+              - generic [ref=e1059]:
+                - generic [ref=e1060]:
+                  - generic [ref=e1061]:
+                    - generic [aria-hidden] [ref=e1062]: ✕
+                    - text: Fail
+                  - generic [ref=e1063]: cpc_too_high
+                  - generic [ref=e1064]: bb · x · x_bb_aldente_01
+                - generic [ref=e1065]: 7-day cost per click $3.83 is above the $2.50 limit. Pausing aldente to stop the bleed.
+                - generic [ref=e1066]:
+                  - generic [ref=e1067]:
+                    - text: "Inputs:"
+                    - code [ref=e1068]: spend_7d=34.5, clicks_7d=9, cpc_7d=3.83
+                  - generic [ref=e1069]:
+                    - text: "Threshold:"
+                    - code [ref=e1070]: <= $2.50
+                - generic [ref=e1071]:
+                  - generic [ref=e1072]: "Action: pause x_bb_aldente_01"
+                  - generic [ref=e1073]: ✓ Applied
+  - status [ref=e77]: BB · aldente resumed.

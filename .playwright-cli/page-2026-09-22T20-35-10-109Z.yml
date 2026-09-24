@@ -1,0 +1,44 @@
+- generic [ref=e1]:
+  - link "Skip to content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e2108]:
+    - generic [ref=e2109]: Ads Control
+    - group "Theme" [ref=e2112]:
+      - button "◐" [ref=e2113] [cursor=pointer]
+      - button "☀" [ref=e2114] [cursor=pointer]
+      - button "☽" [ref=e2115] [cursor=pointer]
+  - main [ref=e33]:
+    - generic [ref=e35]:
+      - heading "Overview" [level=1] [ref=e2116]
+      - generic [ref=e37]: Spend pool, KPIs, and the last automation run
+    - generic [active] [ref=e38]:
+      - generic [ref=e2117]:
+        - generic [ref=e2120]:
+          - generic [ref=e2121]: Company ad pool
+          - generic [ref=e2122]: Month to date · 2026-09
+        - generic [ref=e2130]:
+          - generic [ref=e2131]: Spend by app & platform
+          - generic [ref=e2132]: Daily, stacked
+      - generic [ref=e2135]:
+        - generic [ref=e2136]: Last 7 days
+        - generic [ref=e2147]: Last run
+  - status [ref=e77]: "Dry run complete: r_mock_mud4szv2"
+  - navigation "Primary" [ref=e2155]:
+    - link "Overview" [ref=e2156] [cursor=pointer]:
+      - /url: "#/overview"
+      - generic [aria-hidden] [ref=e2157]: ◎
+    - link "Funnel" [ref=e2159] [cursor=pointer]:
+      - /url: "#/funnel"
+      - generic [aria-hidden] [ref=e2160]: ▽
+    - link "Campaigns" [ref=e2162] [cursor=pointer]:
+      - /url: "#/campaigns"
+      - generic [aria-hidden] [ref=e2163]: ▤
+    - link "Decisions" [ref=e2165] [cursor=pointer]:
+      - /url: "#/decisions"
+      - generic [aria-hidden] [ref=e2166]: ≡
+    - link "Rules" [ref=e2168] [cursor=pointer]:
+      - /url: "#/rules"
+      - generic [aria-hidden] [ref=e2169]: ⚙
+    - link "Platforms" [ref=e2171] [cursor=pointer]:
+      - /url: "#/platforms"
+      - generic [aria-hidden] [ref=e2172]: ⚭

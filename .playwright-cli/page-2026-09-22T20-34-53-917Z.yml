@@ -1,0 +1,118 @@
+- generic [ref=e1]:
+  - link "Skip to content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e3]:
+    - navigation "Primary" [ref=e4]:
+      - generic [ref=e5]: Ads Control
+      - generic [ref=e8]:
+        - link "Overview" [ref=e9] [cursor=pointer]:
+          - /url: "#/overview"
+          - generic [aria-hidden] [ref=e10]: ◎
+        - link "Funnel" [ref=e12] [cursor=pointer]:
+          - /url: "#/funnel"
+          - generic [aria-hidden] [ref=e13]: ▽
+        - link "Campaigns" [ref=e15] [cursor=pointer]:
+          - /url: "#/campaigns"
+          - generic [aria-hidden] [ref=e16]: ▤
+        - link "Decisions" [ref=e18] [cursor=pointer]:
+          - /url: "#/decisions"
+          - generic [aria-hidden] [ref=e19]: ≡
+        - link "Rules" [ref=e21] [cursor=pointer]:
+          - /url: "#/rules"
+          - generic [aria-hidden] [ref=e22]: ⚙
+        - link "Platforms" [ref=e24] [cursor=pointer]:
+          - /url: "#/platforms"
+          - generic [aria-hidden] [ref=e25]: ⚭
+      - generic [ref=e27]:
+        - generic "Reading from local mock data, not the live API" [ref=e28]: Mock data
+        - group "Theme" [ref=e29]:
+          - button "◐" [ref=e30] [cursor=pointer]
+          - button "☀" [ref=e31] [cursor=pointer]
+          - button "☽" [pressed] [ref=e32] [cursor=pointer]
+    - main [ref=e33]:
+      - generic [ref=e35]:
+        - heading "Funnel" [level=1] [ref=e1359]
+        - generic [ref=e37]: Impressions through first launch, by arm
+      - generic [active] [ref=e38]:
+        - search "Funnel filters" [ref=e1360]:
+          - generic [ref=e1361]:
+            - text: App
+            - combobox "App" [ref=e1362]:
+              - option "Battery Beacon" [selected]
+              - option "Snap Shoot Share"
+          - generic [ref=e1363]:
+            - text: From
+            - textbox "From" [ref=e1364]:
+              - /placeholder: YYYY-MM-DD
+              - text: 2026-09-01
+          - generic [ref=e1365]:
+            - text: To
+            - textbox "To" [ref=e1366]:
+              - /placeholder: YYYY-MM-DD
+              - text: 2026-09-22
+        - generic [ref=e1367]:
+          - generic [ref=e1368]:
+            - generic [ref=e1369]: Funnel stages
+            - generic [ref=e1370]: 2026-09-01 → 2026-09-22
+          - generic [ref=e1373]:
+            - generic [ref=e1375]:
+              - generic [ref=e1376]: Impressions
+              - generic [ref=e1377]: 90,211
+            - generic [ref=e1380]:
+              - generic [ref=e1381]:
+                - generic [ref=e1382]: Ad clicks
+                - generic [ref=e1383]: "58"
+              - generic [ref=e1386]: 0.1% of previous stage
+            - generic [ref=e1387]:
+              - generic [ref=e1388]:
+                - generic [ref=e1389]: Landing page views
+                - generic [ref=e1390]: "51"
+              - generic [ref=e1393]: 87.9% of previous stage
+            - generic [ref=e1394]:
+              - generic [ref=e1395]:
+                - generic [ref=e1396]: App Store clicks
+                - generic [ref=e1397]: "22"
+              - generic [ref=e1400]: 43.1% of previous stage
+            - generic [ref=e1401]:
+              - generic [ref=e1402]:
+                - generic [ref=e1403]: Downloads
+                - generic [ref=e1404]: Pending
+              - generic [ref=e1407]: Conversion pending
+            - generic [ref=e1408]:
+              - generic [ref=e1409]:
+                - generic [ref=e1410]: First launches (opted-in)
+                - generic [ref=e1411]: "3"
+              - generic [ref=e1414]: Conversion pending
+        - generic [ref=e1415]:
+          - generic [ref=e1416]: By arm
+          - table [ref=e1420]:
+            - rowgroup [ref=e1421]:
+              - row [ref=e1422]:
+                - columnheader "Arm" [ref=e1423]
+                - columnheader "Impressions" [ref=e1424]
+                - columnheader "Clicks" [ref=e1425]
+                - columnheader "Landing views" [ref=e1426]
+                - columnheader "App Store clicks" [ref=e1427]
+                - columnheader "Downloads" [ref=e1428]
+                - columnheader "First launches" [ref=e1429]
+            - rowgroup [ref=e1430]:
+              - row [ref=e1431]:
+                - cell "health" [ref=e1432]
+                - cell "15,870" [ref=e1433]
+                - cell "34" [ref=e1434]
+                - cell "30" [ref=e1435]
+                - cell "13" [ref=e1436]
+                - cell "Pending" [ref=e1437]
+                - cell "2" [ref=e1438]
+              - row [ref=e1439]:
+                - cell "aldente" [ref=e1440]
+                - cell "4,110" [ref=e1441]
+                - cell "2" [ref=e1442]
+                - cell "2" [ref=e1443]
+                - cell "1" [ref=e1444]
+                - cell "Pending" [ref=e1445]
+                - cell "0" [ref=e1446]
+        - generic [ref=e1447]:
+          - generic [ref=e1448]: Daily trend
+          - 'img "Daily funnel trend: clicks, landing views, App Store clicks" [ref=e1452]'
+  - status [ref=e77]: "Dry run complete: r_mock_mud4szv2"

@@ -1,0 +1,105 @@
+- generic [ref=e1]:
+  - link "Skip to content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e3]:
+    - navigation "Primary" [ref=e4]:
+      - generic [ref=e5]: Ads Control
+      - generic [ref=e8]:
+        - link "Overview" [ref=e9] [cursor=pointer]:
+          - /url: "#/overview"
+          - generic [aria-hidden] [ref=e10]: ◎
+        - link "Funnel" [ref=e12] [cursor=pointer]:
+          - /url: "#/funnel"
+          - generic [aria-hidden] [ref=e13]: ▽
+        - link "Campaigns" [ref=e15] [cursor=pointer]:
+          - /url: "#/campaigns"
+          - generic [aria-hidden] [ref=e16]: ▤
+        - link "Decisions" [ref=e18] [cursor=pointer]:
+          - /url: "#/decisions"
+          - generic [aria-hidden] [ref=e19]: ≡
+        - link "Rules" [ref=e21] [cursor=pointer]:
+          - /url: "#/rules"
+          - generic [aria-hidden] [ref=e22]: ⚙
+        - link "Platforms" [ref=e24] [cursor=pointer]:
+          - /url: "#/platforms"
+          - generic [aria-hidden] [ref=e25]: ⚭
+      - generic [ref=e27]:
+        - generic "Reading from local mock data, not the live API" [ref=e28]: Mock data
+        - group "Theme" [ref=e29]:
+          - button "◐" [ref=e30] [cursor=pointer]
+          - button "☀" [ref=e31] [cursor=pointer]
+          - button "☽" [pressed] [ref=e32] [cursor=pointer]
+    - main [ref=e33]:
+      - generic [ref=e35]:
+        - heading "Campaigns" [level=1] [ref=e1453]
+        - generic [ref=e37]: Every ad campaign the pool counts toward
+      - generic [ref=e1454]:
+        - generic [ref=e1455]: Campaigns
+        - generic [ref=e1458]:
+          - generic [ref=e1459]:
+            - strong [ref=e1460]: Some campaigns are observed, not managed.
+            - generic [ref=e1461]: Snap Shoot Share's own job manages this; counted toward the pool only.
+          - table [ref=e1463]:
+            - rowgroup [ref=e1464]:
+              - row [ref=e1465]:
+                - columnheader "Campaign" [ref=e1466]
+                - columnheader "App" [ref=e1467]
+                - columnheader "Arm" [ref=e1468]
+                - columnheader "Status" [ref=e1469]
+                - columnheader "Daily budget" [ref=e1470]
+                - columnheader "MTD spend" [ref=e1471]
+                - columnheader "7d spend" [ref=e1472]
+                - columnheader "7d clicks" [ref=e1473]
+                - columnheader "Actions" [ref=e1474]
+            - rowgroup [ref=e1475]:
+              - row [ref=e1476]:
+                - cell "BB · health" [ref=e1477]
+                - cell "bb" [ref=e1478]
+                - cell "health" [ref=e1479]
+                - cell [ref=e1480]:
+                  - generic [ref=e1481]:
+                    - generic [aria-hidden] [ref=e1482]: ●
+                    - text: Active
+                - cell "$6.75" [ref=e1483]
+                - cell "$133.67" [ref=e1484]
+                - cell "$42.45" [ref=e1485]
+                - cell "11" [ref=e1486]
+                - cell [ref=e1487]:
+                  - generic [ref=e1488]:
+                    - button "Pause" [ref=e1489] [cursor=pointer]
+                    - button "Resume" [disabled] [ref=e1490]
+              - row [ref=e1491]:
+                - cell "BB · aldente" [ref=e1492]
+                - cell "bb" [ref=e1493]
+                - cell "aldente" [ref=e1494]
+                - cell [ref=e1495]:
+                  - generic [ref=e1496]:
+                    - generic [aria-hidden] [ref=e1497]: ●
+                    - text: Active
+                - cell "$6.00" [ref=e1498]
+                - cell "$98.21" [ref=e1499]
+                - cell "$6.68" [ref=e1500]
+                - cell "2" [ref=e1501]
+                - cell [ref=e1502]:
+                  - generic [ref=e1503]:
+                    - button "Pause" [ref=e1504] [cursor=pointer]
+                    - button "Resume" [disabled] [ref=e1505]
+              - row [ref=e1506]:
+                - cell "SSS · main" [ref=e1507]
+                - cell "sss" [ref=e1508]
+                - cell "—" [ref=e1509]
+                - cell "Active Observed" [ref=e1510]:
+                  - generic [ref=e1511]:
+                    - generic [aria-hidden] [ref=e1512]: ●
+                    - text: Active
+                  - generic [ref=e1513]: Observed
+                - cell "—" [ref=e1514]
+                - cell "$146.48" [ref=e1515]
+                - cell "$44.23" [ref=e1516]
+                - cell "61" [ref=e1517]
+                - cell [ref=e1518]:
+                  - generic [ref=e1519]:
+                    - button "Pause" [disabled] [ref=e1520]
+                    - button "Resume" [disabled] [ref=e1521]
+          - paragraph [ref=e1522]: Snap Shoot Share's own job manages this; counted toward the pool only.
+  - status [ref=e77]: "Dry run complete: r_mock_mud4szv2"

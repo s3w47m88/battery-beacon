@@ -1,0 +1,105 @@
+- generic [active] [ref=e1]:
+  - link "Skip to content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e3]:
+    - navigation "Primary" [ref=e4]:
+      - generic [ref=e5]: Ads Control
+      - generic [ref=e8]:
+        - link "Overview" [ref=e9] [cursor=pointer]:
+          - /url: "#/overview"
+          - generic [aria-hidden] [ref=e10]: ◎
+        - link "Funnel" [ref=e12] [cursor=pointer]:
+          - /url: "#/funnel"
+          - generic [aria-hidden] [ref=e13]: ▽
+        - link "Campaigns" [ref=e15] [cursor=pointer]:
+          - /url: "#/campaigns"
+          - generic [aria-hidden] [ref=e16]: ▤
+        - link "Decisions" [ref=e18] [cursor=pointer]:
+          - /url: "#/decisions"
+          - generic [aria-hidden] [ref=e19]: ≡
+        - link "Rules" [ref=e21] [cursor=pointer]:
+          - /url: "#/rules"
+          - generic [aria-hidden] [ref=e22]: ⚙
+        - link "Platforms" [ref=e24] [cursor=pointer]:
+          - /url: "#/platforms"
+          - generic [aria-hidden] [ref=e25]: ⚭
+      - generic [ref=e27]:
+        - generic "Reading from local mock data, not the live API" [ref=e28]: Mock data
+        - group "Theme" [ref=e29]:
+          - button "◐" [pressed] [ref=e30] [cursor=pointer]
+          - button "☀" [ref=e31] [cursor=pointer]
+          - button "☽" [ref=e32] [cursor=pointer]
+    - main [ref=e33]:
+      - generic [ref=e35]:
+        - heading "Campaigns" [level=1] [ref=e122]
+        - generic [ref=e37]: Every ad campaign the pool counts toward
+      - generic [ref=e123]:
+        - generic [ref=e124]: Campaigns
+        - generic [ref=e127]:
+          - generic [ref=e198]:
+            - strong [ref=e199]: Some campaigns are observed, not managed.
+            - generic [ref=e200]: Snap Shoot Share's own job manages this; counted toward the pool only.
+          - table [ref=e202]:
+            - rowgroup [ref=e203]:
+              - row [ref=e204]:
+                - columnheader "Campaign" [ref=e205]
+                - columnheader "App" [ref=e206]
+                - columnheader "Arm" [ref=e207]
+                - columnheader "Status" [ref=e208]
+                - columnheader "Daily budget" [ref=e209]
+                - columnheader "MTD spend" [ref=e210]
+                - columnheader "7d spend" [ref=e211]
+                - columnheader "7d clicks" [ref=e212]
+                - columnheader "Actions" [ref=e213]
+            - rowgroup [ref=e214]:
+              - row [ref=e215]:
+                - cell "BB · health" [ref=e216]
+                - cell "bb" [ref=e217]
+                - cell "health" [ref=e218]
+                - cell [ref=e219]:
+                  - generic [ref=e220]:
+                    - generic [aria-hidden] [ref=e221]: ●
+                    - text: Active
+                - cell "$6.75" [ref=e222]
+                - cell "$133.67" [ref=e223]
+                - cell "$42.45" [ref=e224]
+                - cell "11" [ref=e225]
+                - cell [ref=e226]:
+                  - generic [ref=e227]:
+                    - button "Pause" [ref=e228] [cursor=pointer]
+                    - button "Resume" [disabled] [ref=e229]
+              - row [ref=e230]:
+                - cell "BB · aldente" [ref=e231]
+                - cell "bb" [ref=e232]
+                - cell "aldente" [ref=e233]
+                - cell [ref=e234]:
+                  - generic [ref=e235]:
+                    - generic [aria-hidden] [ref=e236]: ●
+                    - text: Active
+                - cell "$6.00" [ref=e237]
+                - cell "$98.21" [ref=e238]
+                - cell "$6.68" [ref=e239]
+                - cell "2" [ref=e240]
+                - cell [ref=e241]:
+                  - generic [ref=e242]:
+                    - button "Pause" [ref=e243] [cursor=pointer]
+                    - button "Resume" [disabled] [ref=e244]
+              - row [ref=e245]:
+                - cell "SSS · main" [ref=e246]
+                - cell "sss" [ref=e247]
+                - cell "—" [ref=e248]
+                - cell "Active Observed" [ref=e249]:
+                  - generic [ref=e250]:
+                    - generic [aria-hidden] [ref=e251]: ●
+                    - text: Active
+                  - generic [ref=e252]: Observed
+                - cell "—" [ref=e253]
+                - cell "$146.48" [ref=e254]
+                - cell "$44.23" [ref=e255]
+                - cell "61" [ref=e256]
+                - cell [ref=e257]:
+                  - generic [ref=e258]:
+                    - button "Pause" [disabled] [ref=e259]
+                    - button "Resume" [disabled] [ref=e260]
+          - paragraph [ref=e261]: Snap Shoot Share's own job manages this; counted toward the pool only.
+  - status [ref=e77]: BB · aldente resumed.

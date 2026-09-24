@@ -1,0 +1,63 @@
+- generic [ref=e1]:
+  - link "Skip to content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e3]:
+    - navigation "Primary" [ref=e4]:
+      - generic [ref=e5]: Ads Control
+      - generic [ref=e8]:
+        - link "Overview" [ref=e9] [cursor=pointer]:
+          - /url: "#/overview"
+          - generic [aria-hidden] [ref=e10]: ◎
+        - link "Funnel" [ref=e12] [cursor=pointer]:
+          - /url: "#/funnel"
+          - generic [aria-hidden] [ref=e13]: ▽
+        - link "Campaigns" [ref=e15] [cursor=pointer]:
+          - /url: "#/campaigns"
+          - generic [aria-hidden] [ref=e16]: ▤
+        - link "Decisions" [ref=e18] [cursor=pointer]:
+          - /url: "#/decisions"
+          - generic [aria-hidden] [ref=e19]: ≡
+        - link "Rules" [ref=e21] [cursor=pointer]:
+          - /url: "#/rules"
+          - generic [aria-hidden] [ref=e22]: ⚙
+        - link "Platforms" [ref=e24] [cursor=pointer]:
+          - /url: "#/platforms"
+          - generic [aria-hidden] [ref=e25]: ⚭
+      - generic [ref=e27]:
+        - generic "Reading from local mock data, not the live API" [ref=e28]: Mock data
+        - group "Theme" [ref=e29]:
+          - button "◐" [ref=e30] [cursor=pointer]
+          - button "☀" [ref=e31] [cursor=pointer]
+          - button "☽" [active] [pressed] [ref=e32] [cursor=pointer]
+    - main [ref=e33]:
+      - generic [ref=e35]:
+        - heading "Platforms" [level=1] [ref=e1294]
+        - generic [ref=e37]: Connection status per ad platform
+      - generic [ref=e1296]:
+        - generic [ref=e1297]:
+          - generic [ref=e1298]:
+            - generic [ref=e1299]:
+              - generic [ref=e1300]: X Ads
+              - generic [ref=e1301]: All apps
+            - generic [ref=e1302]:
+              - generic [aria-hidden] [ref=e1303]: ●
+              - text: Connected
+          - paragraph [ref=e1304]: Connected as @tpc_ads. Token refreshes automatically.
+          - paragraph [ref=e1305]: "Last confirmed OK: Sep 22, 6:00 AM"
+          - paragraph [ref=e1306]: Updated Sep 22, 6:00 AM
+          - link "Reconnect X" [ref=e1307] [cursor=pointer]:
+            - /url: /oauth/x/start
+        - generic [ref=e1308]:
+          - generic [ref=e1309]:
+            - generic [ref=e1310]:
+              - generic [ref=e1311]: Apple Search Ads
+              - generic [ref=e1312]: All apps
+            - generic [ref=e1313]:
+              - generic [aria-hidden] [ref=e1314]: ⛔
+              - text: Blocked
+          - paragraph [ref=e1315]: Apple Ads only promotes iOS/iPadOS apps; Battery Beacon is Mac-only.
+          - paragraph [ref=e1316]: Updated Jul 31, 5:00 PM
+          - generic [ref=e1317]:
+            - strong [ref=e1318]: Blocked
+            - generic [ref=e1319]: Apple Ads only promotes iOS/iPadOS apps; Battery Beacon is Mac-only.
+  - status [ref=e77]: "Dry run complete: r_mock_mud4szv2"

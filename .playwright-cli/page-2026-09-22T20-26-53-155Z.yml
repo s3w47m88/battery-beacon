@@ -1,0 +1,52 @@
+- generic [active] [ref=f1e1]:
+  - banner [ref=f1e2]:
+    - link "Battery Beacon" [ref=f1e3] [cursor=pointer]:
+      - /url: "#top"
+    - link "Get the app" [ref=f1e4] [cursor=pointer]:
+      - /url: /go/health?utm_source=x&utm_medium=paid&utm_campaign=bb-202609&utm_content=health
+  - main [ref=f1e5]:
+    - generic [ref=f1e6]:
+      - generic [ref=f1e7]:
+        - heading "Know exactly when to unplug." [level=1] [ref=f1e8]
+        - paragraph [ref=f1e9]: Battery Beacon sits in your menu bar and alerts you the moment your Mac hits 95%, 100%, or any charge level you set — so you stop babysitting the charger and stop overcharging.
+        - link "Download on the Mac App Store" [ref=f1e10] [cursor=pointer]:
+          - /url: /go/health?utm_source=x&utm_medium=paid&utm_campaign=bb-202609&utm_content=health
+        - generic [ref=f1e11]: $0.99 on the Mac App Store
+        - generic [ref=f1e12]:
+          - generic [ref=f1e13]: Menu-bar only
+          - generic [ref=f1e14]: SwiftUI, Liquid Glass on macOS 26
+          - generic [ref=f1e15]: Analytics off by default
+      - img "Battery Beacon alert settings showing configurable charge thresholds" [ref=f1e17]
+    - generic [ref=f1e18]:
+      - heading "How it works" [level=2] [ref=f1e19]
+      - generic [ref=f1e20]:
+        - generic [ref=f1e21]:
+          - img "Battery Beacon's menu-bar icon showing battery percentage and a charging bolt" [ref=f1e22]
+          - heading "Glance at the menu bar" [level=3] [ref=f1e23]
+          - paragraph [ref=f1e24]: Your battery percentage and a charging bolt live right next to the clock — no need to open the app.
+        - generic [ref=f1e25]:
+          - img "Setting alert thresholds with sliders in Battery Beacon" [ref=f1e26]
+          - heading "Set your thresholds" [level=3] [ref=f1e27]
+          - paragraph [ref=f1e28]: Pick when you want to be notified. Defaults to 95% and 100%, or set any percentage you like.
+        - generic [ref=f1e29]:
+          - img "Battery Beacon showing charge stats" [ref=f1e30]
+          - heading "Get notified, then unplug" [level=3] [ref=f1e31]
+          - paragraph [ref=f1e32]: A native macOS notification fires near the battery icon while you're plugged in. Unplug, and thresholds reset for next time.
+    - list [ref=f1e34]:
+      - listitem [ref=f1e35]: Lives quietly in the menu bar — no dock icon, no clutter
+      - listitem [ref=f1e36]: Configurable alert thresholds with simple sliders
+      - listitem [ref=f1e37]: Native notifications, fired while plugged in
+      - listitem [ref=f1e38]: Optional alert sound
+      - listitem [ref=f1e39]: Thresholds reset automatically each time you unplug
+      - listitem [ref=f1e40]: Built with SwiftUI, matches system theme including Liquid Glass on macOS 26
+    - generic [ref=f1e41]:
+      - heading "Stop guessing when to unplug." [level=2] [ref=f1e42]
+      - paragraph [ref=f1e43]: One-time purchase. No account, no subscription.
+      - link "Download on the Mac App Store — $0.99" [ref=f1e44] [cursor=pointer]:
+        - /url: /go/health?utm_source=x&utm_medium=paid&utm_campaign=bb-202609&utm_content=health
+  - contentinfo [ref=f1e45]:
+    - generic [ref=f1e46]:
+      - generic [ref=f1e47]: © 2026 The Portland Company
+      - link "Privacy Policy" [ref=f1e48] [cursor=pointer]:
+        - /url: https://github.com/s3w47m88/battery-beacon/blob/master/PRIVACY.md
+    - paragraph [ref=f1e49]: This page uses privacy-friendly, cookie-free analytics (Umami) and the X (Twitter) ads pixel to measure how this page performs.

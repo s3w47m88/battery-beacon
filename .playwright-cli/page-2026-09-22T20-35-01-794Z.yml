@@ -1,0 +1,510 @@
+- generic [ref=e1]:
+  - link "Skip to content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e3]:
+    - navigation "Primary" [ref=e4]:
+      - generic [ref=e5]: Ads Control
+      - generic [ref=e8]:
+        - link "Overview" [ref=e9] [cursor=pointer]:
+          - /url: "#/overview"
+          - generic [aria-hidden] [ref=e10]: ◎
+        - link "Funnel" [ref=e12] [cursor=pointer]:
+          - /url: "#/funnel"
+          - generic [aria-hidden] [ref=e13]: ▽
+        - link "Campaigns" [ref=e15] [cursor=pointer]:
+          - /url: "#/campaigns"
+          - generic [aria-hidden] [ref=e16]: ▤
+        - link "Decisions" [ref=e18] [cursor=pointer]:
+          - /url: "#/decisions"
+          - generic [aria-hidden] [ref=e19]: ≡
+        - link "Rules" [ref=e21] [cursor=pointer]:
+          - /url: "#/rules"
+          - generic [aria-hidden] [ref=e22]: ⚙
+        - link "Platforms" [ref=e24] [cursor=pointer]:
+          - /url: "#/platforms"
+          - generic [aria-hidden] [ref=e25]: ⚭
+      - generic [ref=e27]:
+        - generic "Reading from local mock data, not the live API" [ref=e28]: Mock data
+        - group "Theme" [ref=e29]:
+          - button "◐" [ref=e30] [cursor=pointer]
+          - button "☀" [ref=e31] [cursor=pointer]
+          - button "☽" [pressed] [ref=e32] [cursor=pointer]
+    - main [ref=e33]:
+      - generic [ref=e35]:
+        - heading "Decisions" [level=1] [ref=e1523]
+        - generic [ref=e37]: Every run the automation made, and why
+      - generic [active] [ref=e38]:
+        - search "Run filters" [ref=e1524]:
+          - generic [ref=e1525]:
+            - text: Source
+            - combobox "Source" [ref=e1526]:
+              - option "All sources" [selected]
+              - option "Scheduled"
+              - option "Manual"
+              - option "Agent"
+          - generic [ref=e1527]:
+            - text: Outcome
+            - combobox "Outcome" [ref=e1528]:
+              - option "All outcomes" [selected]
+              - option "Pass"
+              - option "Fail"
+              - option "Skip"
+              - option "Info"
+          - generic [ref=e1529]:
+            - text: Rule
+            - combobox "Rule" [ref=e1530]:
+              - option "All rules" [selected]
+              - option "company_pool"
+              - option "app_cap"
+              - option "user_pause"
+              - option "daily_overspend"
+              - option "cpc_too_high"
+              - option "ctr_too_low"
+              - option "ramp"
+              - option "pace"
+              - option "split"
+              - option "budget"
+              - option "budget_exhausted"
+              - option "manual_pause"
+              - option "manual_resume"
+              - option "agent_note"
+          - button "Run now (dry run)" [ref=e1531] [cursor=pointer]
+        - generic [ref=e1532]:
+          - generic [ref=e1533]:
+            - generic [ref=e1534]: Runs
+            - generic [ref=e1537]:
+              - button "r_mock_mud4szv2 · Manual dry-run ok Sep 22, 1:33 PM (1m ago) · Manual dry run from dashboard — no changes applied" [ref=e1538] [cursor=pointer]:
+                - generic [ref=e1539]:
+                  - generic [ref=e1540]:
+                    - strong [ref=e1541]: r_mock_mud4szv2
+                    - text: · Manual
+                  - generic [ref=e1542]:
+                    - generic [ref=e1543]: dry-run
+                    - generic [ref=e1544]: ok
+                - generic [ref=e1545]: Sep 22, 1:33 PM (1m ago) · Manual dry run from dashboard — no changes applied
+              - button "r_mock_mud4s2os · Manual dry-run ok Sep 22, 1:32 PM (2m ago) · Resumed BB · aldente from dashboard" [ref=e1546] [cursor=pointer]:
+                - generic [ref=e1547]:
+                  - generic [ref=e1548]:
+                    - strong [ref=e1549]: r_mock_mud4s2os
+                    - text: · Manual
+                  - generic [ref=e1550]:
+                    - generic [ref=e1551]: dry-run
+                    - generic [ref=e1552]: ok
+                - generic [ref=e1553]: Sep 22, 1:32 PM (2m ago) · Resumed BB · aldente from dashboard
+              - button "r_040 · Scheduled live ok Sep 22, 6:00 AM (8h ago) · 1 budget change" [ref=e1554] [cursor=pointer]:
+                - generic [ref=e1555]:
+                  - generic [ref=e1556]:
+                    - strong [ref=e1557]: r_040
+                    - text: · Scheduled
+                  - generic [ref=e1558]:
+                    - generic [ref=e1559]: live
+                    - generic [ref=e1560]: ok
+                - generic [ref=e1561]: Sep 22, 6:00 AM (8h ago) · 1 budget change
+              - button "r_039 · Scheduled dry-run ok Sep 6, 11:00 AM (16d ago) · 2 checks passed, 1 skipped" [ref=e1562] [cursor=pointer]:
+                - generic [ref=e1563]:
+                  - generic [ref=e1564]:
+                    - strong [ref=e1565]: r_039
+                    - text: · Scheduled
+                  - generic [ref=e1566]:
+                    - generic [ref=e1567]: dry-run
+                    - generic [ref=e1568]: ok
+                - generic [ref=e1569]: Sep 6, 11:00 AM (16d ago) · 2 checks passed, 1 skipped
+              - button "r_038 · Scheduled dry-run ok Sep 5, 8:00 PM (17d ago) · 2 checks passed, 1 skipped" [ref=e1570] [cursor=pointer]:
+                - generic [ref=e1571]:
+                  - generic [ref=e1572]:
+                    - strong [ref=e1573]: r_038
+                    - text: · Scheduled
+                  - generic [ref=e1574]:
+                    - generic [ref=e1575]: dry-run
+                    - generic [ref=e1576]: ok
+                - generic [ref=e1577]: Sep 5, 8:00 PM (17d ago) · 2 checks passed, 1 skipped
+              - button "r_037 · Scheduled dry-run ok Sep 5, 5:00 AM (17d ago) · 2 checks passed, 1 skipped" [ref=e1578] [cursor=pointer]:
+                - generic [ref=e1579]:
+                  - generic [ref=e1580]:
+                    - strong [ref=e1581]: r_037
+                    - text: · Scheduled
+                  - generic [ref=e1582]:
+                    - generic [ref=e1583]: dry-run
+                    - generic [ref=e1584]: ok
+                - generic [ref=e1585]: Sep 5, 5:00 AM (17d ago) · 2 checks passed, 1 skipped
+              - button "r_036 · Scheduled dry-run ok Sep 4, 2:00 PM (18d ago) · 2 checks passed, 1 skipped" [ref=e1586] [cursor=pointer]:
+                - generic [ref=e1587]:
+                  - generic [ref=e1588]:
+                    - strong [ref=e1589]: r_036
+                    - text: · Scheduled
+                  - generic [ref=e1590]:
+                    - generic [ref=e1591]: dry-run
+                    - generic [ref=e1592]: ok
+                - generic [ref=e1593]: Sep 4, 2:00 PM (18d ago) · 2 checks passed, 1 skipped
+              - button "r_035 · Scheduled dry-run ok Sep 3, 11:00 PM (19d ago) · 2 checks passed, 1 skipped" [ref=e1594] [cursor=pointer]:
+                - generic [ref=e1595]:
+                  - generic [ref=e1596]:
+                    - strong [ref=e1597]: r_035
+                    - text: · Scheduled
+                  - generic [ref=e1598]:
+                    - generic [ref=e1599]: dry-run
+                    - generic [ref=e1600]: ok
+                - generic [ref=e1601]: Sep 3, 11:00 PM (19d ago) · 2 checks passed, 1 skipped
+              - button "r_034 · Scheduled dry-run ok Sep 3, 8:00 AM (19d ago) · 2 checks passed, 1 skipped" [ref=e1602] [cursor=pointer]:
+                - generic [ref=e1603]:
+                  - generic [ref=e1604]:
+                    - strong [ref=e1605]: r_034
+                    - text: · Scheduled
+                  - generic [ref=e1606]:
+                    - generic [ref=e1607]: dry-run
+                    - generic [ref=e1608]: ok
+                - generic [ref=e1609]: Sep 3, 8:00 AM (19d ago) · 2 checks passed, 1 skipped
+              - button "r_033 · Scheduled dry-run error Sep 2, 5:00 PM (20d ago) · X Ads API error" [ref=e1610] [cursor=pointer]:
+                - generic [ref=e1611]:
+                  - generic [ref=e1612]:
+                    - strong [ref=e1613]: r_033
+                    - text: · Scheduled
+                  - generic [ref=e1614]:
+                    - generic [ref=e1615]: dry-run
+                    - generic [ref=e1616]: error
+                - generic [ref=e1617]: Sep 2, 5:00 PM (20d ago) · X Ads API error
+              - button "r_032 · Agent dry-run ok Sep 2, 2:00 AM (21d ago) · Agent check-in — no action needed" [ref=e1618] [cursor=pointer]:
+                - generic [ref=e1619]:
+                  - generic [ref=e1620]:
+                    - strong [ref=e1621]: r_032
+                    - text: · Agent
+                  - generic [ref=e1622]:
+                    - generic [ref=e1623]: dry-run
+                    - generic [ref=e1624]: ok
+                - generic [ref=e1625]: Sep 2, 2:00 AM (21d ago) · Agent check-in — no action needed
+              - button "r_031 · Scheduled dry-run ok Sep 1, 11:00 AM (21d ago) · 2 checks passed, 1 skipped" [ref=e1626] [cursor=pointer]:
+                - generic [ref=e1627]:
+                  - generic [ref=e1628]:
+                    - strong [ref=e1629]: r_031
+                    - text: · Scheduled
+                  - generic [ref=e1630]:
+                    - generic [ref=e1631]: dry-run
+                    - generic [ref=e1632]: ok
+                - generic [ref=e1633]: Sep 1, 11:00 AM (21d ago) · 2 checks passed, 1 skipped
+              - button "r_030 · Scheduled dry-run ok Aug 31, 8:00 PM (22d ago) · 2 checks passed, 1 skipped" [ref=e1634] [cursor=pointer]:
+                - generic [ref=e1635]:
+                  - generic [ref=e1636]:
+                    - strong [ref=e1637]: r_030
+                    - text: · Scheduled
+                  - generic [ref=e1638]:
+                    - generic [ref=e1639]: dry-run
+                    - generic [ref=e1640]: ok
+                - generic [ref=e1641]: Aug 31, 8:00 PM (22d ago) · 2 checks passed, 1 skipped
+              - button "r_029 · Scheduled dry-run ok Aug 31, 5:00 AM (22d ago) · 2 checks passed, 1 skipped" [ref=e1642] [cursor=pointer]:
+                - generic [ref=e1643]:
+                  - generic [ref=e1644]:
+                    - strong [ref=e1645]: r_029
+                    - text: · Scheduled
+                  - generic [ref=e1646]:
+                    - generic [ref=e1647]: dry-run
+                    - generic [ref=e1648]: ok
+                - generic [ref=e1649]: Aug 31, 5:00 AM (22d ago) · 2 checks passed, 1 skipped
+              - button "r_028 · Scheduled dry-run ok Aug 30, 2:00 PM (23d ago) · 2 checks passed, 1 skipped" [ref=e1650] [cursor=pointer]:
+                - generic [ref=e1651]:
+                  - generic [ref=e1652]:
+                    - strong [ref=e1653]: r_028
+                    - text: · Scheduled
+                  - generic [ref=e1654]:
+                    - generic [ref=e1655]: dry-run
+                    - generic [ref=e1656]: ok
+                - generic [ref=e1657]: Aug 30, 2:00 PM (23d ago) · 2 checks passed, 1 skipped
+              - button "r_027 · Scheduled dry-run ok Aug 29, 11:00 PM (24d ago) · 2 checks passed, 1 skipped" [ref=e1658] [cursor=pointer]:
+                - generic [ref=e1659]:
+                  - generic [ref=e1660]:
+                    - strong [ref=e1661]: r_027
+                    - text: · Scheduled
+                  - generic [ref=e1662]:
+                    - generic [ref=e1663]: dry-run
+                    - generic [ref=e1664]: ok
+                - generic [ref=e1665]: Aug 29, 11:00 PM (24d ago) · 2 checks passed, 1 skipped
+              - button "r_026 · Manual dry-run ok Aug 29, 8:00 AM (24d ago) · Manual run — 2 checks passed" [ref=e1666] [cursor=pointer]:
+                - generic [ref=e1667]:
+                  - generic [ref=e1668]:
+                    - strong [ref=e1669]: r_026
+                    - text: · Manual
+                  - generic [ref=e1670]:
+                    - generic [ref=e1671]: dry-run
+                    - generic [ref=e1672]: ok
+                - generic [ref=e1673]: Aug 29, 8:00 AM (24d ago) · Manual run — 2 checks passed
+              - button "r_025 · Scheduled dry-run ok Aug 28, 5:00 PM (25d ago) · 2 checks passed, 1 skipped" [ref=e1674] [cursor=pointer]:
+                - generic [ref=e1675]:
+                  - generic [ref=e1676]:
+                    - strong [ref=e1677]: r_025
+                    - text: · Scheduled
+                  - generic [ref=e1678]:
+                    - generic [ref=e1679]: dry-run
+                    - generic [ref=e1680]: ok
+                - generic [ref=e1681]: Aug 28, 5:00 PM (25d ago) · 2 checks passed, 1 skipped
+              - button "r_024 · Scheduled dry-run ok Aug 28, 2:00 AM (26d ago) · 2 checks passed, 1 skipped" [ref=e1682] [cursor=pointer]:
+                - generic [ref=e1683]:
+                  - generic [ref=e1684]:
+                    - strong [ref=e1685]: r_024
+                    - text: · Scheduled
+                  - generic [ref=e1686]:
+                    - generic [ref=e1687]: dry-run
+                    - generic [ref=e1688]: ok
+                - generic [ref=e1689]: Aug 28, 2:00 AM (26d ago) · 2 checks passed, 1 skipped
+              - button "r_023 · Scheduled dry-run ok Aug 27, 11:00 AM (26d ago) · 2 checks passed" [ref=e1690] [cursor=pointer]:
+                - generic [ref=e1691]:
+                  - generic [ref=e1692]:
+                    - strong [ref=e1693]: r_023
+                    - text: · Scheduled
+                  - generic [ref=e1694]:
+                    - generic [ref=e1695]: dry-run
+                    - generic [ref=e1696]: ok
+                - generic [ref=e1697]: Aug 27, 11:00 AM (26d ago) · 2 checks passed
+              - button "r_022 · Scheduled dry-run ok Aug 26, 8:00 PM (27d ago) · 2 checks passed, 1 skipped" [ref=e1698] [cursor=pointer]:
+                - generic [ref=e1699]:
+                  - generic [ref=e1700]:
+                    - strong [ref=e1701]: r_022
+                    - text: · Scheduled
+                  - generic [ref=e1702]:
+                    - generic [ref=e1703]: dry-run
+                    - generic [ref=e1704]: ok
+                - generic [ref=e1705]: Aug 26, 8:00 PM (27d ago) · 2 checks passed, 1 skipped
+              - button "r_021 · Scheduled live ok Aug 26, 5:00 AM (27d ago) · 1 check failed, 1 campaign paused" [ref=e1706] [cursor=pointer]:
+                - generic [ref=e1707]:
+                  - generic [ref=e1708]:
+                    - strong [ref=e1709]: r_021
+                    - text: · Scheduled
+                  - generic [ref=e1710]:
+                    - generic [ref=e1711]: live
+                    - generic [ref=e1712]: ok
+                - generic [ref=e1713]: Aug 26, 5:00 AM (27d ago) · 1 check failed, 1 campaign paused
+              - button "r_020 · Scheduled dry-run error Aug 25, 2:00 PM (28d ago) · X Ads API error" [ref=e1714] [cursor=pointer]:
+                - generic [ref=e1715]:
+                  - generic [ref=e1716]:
+                    - strong [ref=e1717]: r_020
+                    - text: · Scheduled
+                  - generic [ref=e1718]:
+                    - generic [ref=e1719]: dry-run
+                    - generic [ref=e1720]: error
+                - generic [ref=e1721]: Aug 25, 2:00 PM (28d ago) · X Ads API error
+              - button "r_019 · Scheduled dry-run ok Aug 24, 11:00 PM (29d ago) · 2 checks passed, 1 skipped" [ref=e1722] [cursor=pointer]:
+                - generic [ref=e1723]:
+                  - generic [ref=e1724]:
+                    - strong [ref=e1725]: r_019
+                    - text: · Scheduled
+                  - generic [ref=e1726]:
+                    - generic [ref=e1727]: dry-run
+                    - generic [ref=e1728]: ok
+                - generic [ref=e1729]: Aug 24, 11:00 PM (29d ago) · 2 checks passed, 1 skipped
+              - button "r_018 · Scheduled dry-run ok Aug 24, 8:00 AM (29d ago) · 2 checks passed, 1 skipped" [ref=e1730] [cursor=pointer]:
+                - generic [ref=e1731]:
+                  - generic [ref=e1732]:
+                    - strong [ref=e1733]: r_018
+                    - text: · Scheduled
+                  - generic [ref=e1734]:
+                    - generic [ref=e1735]: dry-run
+                    - generic [ref=e1736]: ok
+                - generic [ref=e1737]: Aug 24, 8:00 AM (29d ago) · 2 checks passed, 1 skipped
+              - button "r_017 · Scheduled dry-run ok Aug 23, 5:00 PM (30d ago) · 2 checks passed, 1 skipped" [ref=e1738] [cursor=pointer]:
+                - generic [ref=e1739]:
+                  - generic [ref=e1740]:
+                    - strong [ref=e1741]: r_017
+                    - text: · Scheduled
+                  - generic [ref=e1742]:
+                    - generic [ref=e1743]: dry-run
+                    - generic [ref=e1744]: ok
+                - generic [ref=e1745]: Aug 23, 5:00 PM (30d ago) · 2 checks passed, 1 skipped
+              - button "r_016 · Scheduled dry-run ok Aug 23, 2:00 AM (31d ago) · 2 checks passed, 1 skipped" [ref=e1746] [cursor=pointer]:
+                - generic [ref=e1747]:
+                  - generic [ref=e1748]:
+                    - strong [ref=e1749]: r_016
+                    - text: · Scheduled
+                  - generic [ref=e1750]:
+                    - generic [ref=e1751]: dry-run
+                    - generic [ref=e1752]: ok
+                - generic [ref=e1753]: Aug 23, 2:00 AM (31d ago) · 2 checks passed, 1 skipped
+              - button "r_015 · Scheduled dry-run ok Aug 22, 11:00 AM (31d ago) · 2 checks passed, 1 skipped" [ref=e1754] [cursor=pointer]:
+                - generic [ref=e1755]:
+                  - generic [ref=e1756]:
+                    - strong [ref=e1757]: r_015
+                    - text: · Scheduled
+                  - generic [ref=e1758]:
+                    - generic [ref=e1759]: dry-run
+                    - generic [ref=e1760]: ok
+                - generic [ref=e1761]: Aug 22, 11:00 AM (31d ago) · 2 checks passed, 1 skipped
+              - button "r_014 · Scheduled dry-run ok Aug 21, 8:00 PM (32d ago) · 2 checks passed" [ref=e1762] [cursor=pointer]:
+                - generic [ref=e1763]:
+                  - generic [ref=e1764]:
+                    - strong [ref=e1765]: r_014
+                    - text: · Scheduled
+                  - generic [ref=e1766]:
+                    - generic [ref=e1767]: dry-run
+                    - generic [ref=e1768]: ok
+                - generic [ref=e1769]: Aug 21, 8:00 PM (32d ago) · 2 checks passed
+              - button "r_013 · Scheduled dry-run ok Aug 21, 5:00 AM (32d ago) · 2 checks passed, 1 skipped" [ref=e1770] [cursor=pointer]:
+                - generic [ref=e1771]:
+                  - generic [ref=e1772]:
+                    - strong [ref=e1773]: r_013
+                    - text: · Scheduled
+                  - generic [ref=e1774]:
+                    - generic [ref=e1775]: dry-run
+                    - generic [ref=e1776]: ok
+                - generic [ref=e1777]: Aug 21, 5:00 AM (32d ago) · 2 checks passed, 1 skipped
+              - button "r_012 · Scheduled dry-run ok Aug 20, 2:00 PM (33d ago) · 2 checks passed, 1 skipped" [ref=e1778] [cursor=pointer]:
+                - generic [ref=e1779]:
+                  - generic [ref=e1780]:
+                    - strong [ref=e1781]: r_012
+                    - text: · Scheduled
+                  - generic [ref=e1782]:
+                    - generic [ref=e1783]: dry-run
+                    - generic [ref=e1784]: ok
+                - generic [ref=e1785]: Aug 20, 2:00 PM (33d ago) · 2 checks passed, 1 skipped
+              - button "r_011 · Scheduled dry-run ok Aug 19, 11:00 PM (34d ago) · 2 checks passed, 1 skipped" [ref=e1786] [cursor=pointer]:
+                - generic [ref=e1787]:
+                  - generic [ref=e1788]:
+                    - strong [ref=e1789]: r_011
+                    - text: · Scheduled
+                  - generic [ref=e1790]:
+                    - generic [ref=e1791]: dry-run
+                    - generic [ref=e1792]: ok
+                - generic [ref=e1793]: Aug 19, 11:00 PM (34d ago) · 2 checks passed, 1 skipped
+              - button "r_010 · Scheduled dry-run ok Aug 19, 8:00 AM (34d ago) · 2 checks passed, 1 skipped" [ref=e1794] [cursor=pointer]:
+                - generic [ref=e1795]:
+                  - generic [ref=e1796]:
+                    - strong [ref=e1797]: r_010
+                    - text: · Scheduled
+                  - generic [ref=e1798]:
+                    - generic [ref=e1799]: dry-run
+                    - generic [ref=e1800]: ok
+                - generic [ref=e1801]: Aug 19, 8:00 AM (34d ago) · 2 checks passed, 1 skipped
+              - button "r_009 · Scheduled dry-run ok Aug 18, 5:00 PM (35d ago) · 2 checks passed, 1 skipped" [ref=e1802] [cursor=pointer]:
+                - generic [ref=e1803]:
+                  - generic [ref=e1804]:
+                    - strong [ref=e1805]: r_009
+                    - text: · Scheduled
+                  - generic [ref=e1806]:
+                    - generic [ref=e1807]: dry-run
+                    - generic [ref=e1808]: ok
+                - generic [ref=e1809]: Aug 18, 5:00 PM (35d ago) · 2 checks passed, 1 skipped
+              - button "r_008 · Scheduled dry-run ok Aug 18, 2:00 AM (36d ago) · 2 checks passed, 1 skipped" [ref=e1810] [cursor=pointer]:
+                - generic [ref=e1811]:
+                  - generic [ref=e1812]:
+                    - strong [ref=e1813]: r_008
+                    - text: · Scheduled
+                  - generic [ref=e1814]:
+                    - generic [ref=e1815]: dry-run
+                    - generic [ref=e1816]: ok
+                - generic [ref=e1817]: Aug 18, 2:00 AM (36d ago) · 2 checks passed, 1 skipped
+              - button "r_007 · Scheduled dry-run error Aug 17, 11:00 AM (36d ago) · X Ads API error" [ref=e1818] [cursor=pointer]:
+                - generic [ref=e1819]:
+                  - generic [ref=e1820]:
+                    - strong [ref=e1821]: r_007
+                    - text: · Scheduled
+                  - generic [ref=e1822]:
+                    - generic [ref=e1823]: dry-run
+                    - generic [ref=e1824]: error
+                - generic [ref=e1825]: Aug 17, 11:00 AM (36d ago) · X Ads API error
+              - button "r_006 · Scheduled dry-run ok Aug 16, 8:00 PM (37d ago) · 2 checks passed, 1 skipped" [ref=e1826] [cursor=pointer]:
+                - generic [ref=e1827]:
+                  - generic [ref=e1828]:
+                    - strong [ref=e1829]: r_006
+                    - text: · Scheduled
+                  - generic [ref=e1830]:
+                    - generic [ref=e1831]: dry-run
+                    - generic [ref=e1832]: ok
+                - generic [ref=e1833]: Aug 16, 8:00 PM (37d ago) · 2 checks passed, 1 skipped
+              - button "r_005 · Scheduled dry-run ok Aug 16, 5:00 AM (37d ago) · 2 checks passed" [ref=e1834] [cursor=pointer]:
+                - generic [ref=e1835]:
+                  - generic [ref=e1836]:
+                    - strong [ref=e1837]: r_005
+                    - text: · Scheduled
+                  - generic [ref=e1838]:
+                    - generic [ref=e1839]: dry-run
+                    - generic [ref=e1840]: ok
+                - generic [ref=e1841]: Aug 16, 5:00 AM (37d ago) · 2 checks passed
+              - button "r_004 · Scheduled dry-run ok Aug 15, 2:00 PM (38d ago) · 2 checks passed, 1 skipped" [ref=e1842] [cursor=pointer]:
+                - generic [ref=e1843]:
+                  - generic [ref=e1844]:
+                    - strong [ref=e1845]: r_004
+                    - text: · Scheduled
+                  - generic [ref=e1846]:
+                    - generic [ref=e1847]: dry-run
+                    - generic [ref=e1848]: ok
+                - generic [ref=e1849]: Aug 15, 2:00 PM (38d ago) · 2 checks passed, 1 skipped
+              - button "r_003 · Scheduled dry-run ok Aug 14, 11:00 PM (39d ago) · 2 checks passed, 1 skipped" [ref=e1850] [cursor=pointer]:
+                - generic [ref=e1851]:
+                  - generic [ref=e1852]:
+                    - strong [ref=e1853]: r_003
+                    - text: · Scheduled
+                  - generic [ref=e1854]:
+                    - generic [ref=e1855]: dry-run
+                    - generic [ref=e1856]: ok
+                - generic [ref=e1857]: Aug 14, 11:00 PM (39d ago) · 2 checks passed, 1 skipped
+              - button "r_002 · Scheduled dry-run ok Aug 14, 8:00 AM (39d ago) · 2 checks passed, 1 skipped" [ref=e1858] [cursor=pointer]:
+                - generic [ref=e1859]:
+                  - generic [ref=e1860]:
+                    - strong [ref=e1861]: r_002
+                    - text: · Scheduled
+                  - generic [ref=e1862]:
+                    - generic [ref=e1863]: dry-run
+                    - generic [ref=e1864]: ok
+                - generic [ref=e1865]: Aug 14, 8:00 AM (39d ago) · 2 checks passed, 1 skipped
+              - button "r_001 · Scheduled dry-run ok Aug 13, 5:00 PM (40d ago) · 2 checks passed, 1 skipped" [ref=e1866] [cursor=pointer]:
+                - generic [ref=e1867]:
+                  - generic [ref=e1868]:
+                    - strong [ref=e1869]: r_001
+                    - text: · Scheduled
+                  - generic [ref=e1870]:
+                    - generic [ref=e1871]: dry-run
+                    - generic [ref=e1872]: ok
+                - generic [ref=e1873]: Aug 13, 5:00 PM (40d ago) · 2 checks passed, 1 skipped
+          - generic [ref=e1874]:
+            - generic [ref=e1875]: Run r_021
+            - generic [ref=e1877]:
+              - generic [ref=e1878]:
+                - generic [ref=e1879]: ok
+                - generic [ref=e1880]: Live run
+                - generic [ref=e1881]: Scheduled · rules v3 · Aug 26, 5:00 AM
+              - generic [ref=e1882]:
+                - generic [ref=e1883]:
+                  - generic [ref=e1884]:
+                    - generic [aria-hidden] [ref=e1885]: ✓
+                    - text: Pass
+                  - generic [ref=e1886]: company_pool
+                - generic [ref=e1887]: "All apps together: $198.64 of $500.00 this month."
+                - generic [ref=e1888]:
+                  - generic [ref=e1889]:
+                    - text: "Inputs:"
+                    - code [ref=e1890]: "pool_mtd=198.64, by_app={\"bb\":121.74,\"sss\":76.9}"
+                  - generic [ref=e1891]:
+                    - text: "Threshold:"
+                    - code [ref=e1892]: < $500.00
+                - generic [ref=e1893]: No action taken
+              - generic [ref=e1895]:
+                - generic [ref=e1896]:
+                  - generic [ref=e1897]:
+                    - generic [aria-hidden] [ref=e1898]: ✓
+                    - text: Pass
+                  - generic [ref=e1899]: app_cap
+                  - generic [ref=e1900]: bb
+                - generic [ref=e1901]: bb has spent $121.74 this month, under its $350.00 cap.
+                - generic [ref=e1902]:
+                  - generic [ref=e1903]:
+                    - text: "Inputs:"
+                    - code [ref=e1904]: app_mtd=121.74
+                  - generic [ref=e1905]:
+                    - text: "Threshold:"
+                    - code [ref=e1906]: < $350.00
+                - generic [ref=e1907]: No action taken
+              - generic [ref=e1909]:
+                - generic [ref=e1910]:
+                  - generic [ref=e1911]:
+                    - generic [aria-hidden] [ref=e1912]: ✕
+                    - text: Fail
+                  - generic [ref=e1913]: cpc_too_high
+                  - generic [ref=e1914]: bb · x · x_bb_aldente_01
+                - generic [ref=e1915]: 7-day cost per click $3.83 is above the $2.50 limit. Pausing aldente to stop the bleed.
+                - generic [ref=e1916]:
+                  - generic [ref=e1917]:
+                    - text: "Inputs:"
+                    - code [ref=e1918]: spend_7d=34.5, clicks_7d=9, cpc_7d=3.83
+                  - generic [ref=e1919]:
+                    - text: "Threshold:"
+                    - code [ref=e1920]: <= $2.50
+                - generic [ref=e1921]:
+                  - generic [ref=e1922]: "Action: pause x_bb_aldente_01"
+                  - generic [ref=e1923]: ✓ Applied
+  - status [ref=e77]: "Dry run complete: r_mock_mud4szv2"
